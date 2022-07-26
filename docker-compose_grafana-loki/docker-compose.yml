@@ -3,7 +3,7 @@ networks:
   loki:
 services:
   loki:
-    image: grafana/loki:2.4.0
+    image: grafana/loki:latest
     volumes:
       - /home/serveradmin/docker_volumes/loki:/etc/loki
     ports:
@@ -13,7 +13,7 @@ services:
     networks:
       - loki
   promtail:
-    image: grafana/promtail:2.4.0
+    image: grafana/promtail:latest
     volumes:
       - /var/log:/var/log
       - /home/serveradmin/docker_volumes/promtail:/etc/promtail
