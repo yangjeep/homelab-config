@@ -26,5 +26,8 @@ services:
     ports:
       - 9001:9001
 
+
 volumes:
-  portainer_data:
+    portainer_data:
+
+
