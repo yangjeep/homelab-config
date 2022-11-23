@@ -23,7 +23,7 @@ services:
     volumes:
       - /data/compose/14/docker-compose_dashy/public/item-icons:/app/public/item-icons
       - type: bind
-        source: /data/compose/14/docker-compose_dashy/config/conf.yml
+        source: /home/yangjeep/homelab-config/docker-compose_dashy/config/conf.yml
         target: /app/public/conf.yml
 
     # Set port that web service will be served on. Keep container port as 80
