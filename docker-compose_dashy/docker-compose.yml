@@ -28,7 +28,7 @@ services:
 
     # configs
     configs:
-      - source: ~/homelab-config/docker-compose_dashy/config/conf.yml
+      - source: conf.yml
         target: /app/public/conf.yml
     # Set any environmental variables
     environment:
@@ -47,3 +47,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+configs:
+  conf.yml:
+    file: ~/homelab-config/docker-compose_dashy/config/conf.yml
