@@ -97,7 +97,7 @@ services:
       - name: "Proxmox - E430"
         logo: "https://www.google.com/url?sa=i&url=https%3A%2F%2Fgithub.com%2FandOTP%2FandOTP%2Fissues%2F337&psig=AOvVaw2YKVuEUIBeTUikr7kAjm8D&ust=1665323538747000&source=images&cd=vfe&ved=0CAkQjRxqFwoTCPCTruLj0PoCFQAAAAAdAAAAABAN"
         type: "Proxmox"
-        url: "https://192.168.100.62"
+        url: "https://192.168.100.62:8006"
         node: "pve-E430"
         warning_value: 50
         danger_value: 80
@@ -109,7 +109,7 @@ services:
       - name: "Proxmox - HPE EC200a"
         logo: "https://www.google.com/url?sa=i&url=https%3A%2F%2Fgithub.com%2FandOTP%2FandOTP%2Fissues%2F337&psig=AOvVaw2YKVuEUIBeTUikr7kAjm8D&ust=1665323538747000&source=images&cd=vfe&ved=0CAkQjRxqFwoTCPCTruLj0PoCFQAAAAAdAAAAABAN"
         type: "Proxmox"
-        url: "https://192.168.100.66"
+        url: "https://192.168.100.66:8006"
         node: "ec200a-pve"
         warning_value: 50
         danger_value: 80
@@ -121,7 +121,7 @@ services:
       - name: "Proxmox - HPE MSG10+"
         logo: "https://www.google.com/url?sa=i&url=https%3A%2F%2Fgithub.com%2FandOTP%2FandOTP%2Fissues%2F337&psig=AOvVaw2YKVuEUIBeTUikr7kAjm8D&ust=1665323538747000&source=images&cd=vfe&ved=0CAkQjRxqFwoTCPCTruLj0PoCFQAAAAAdAAAAABAN"
         type: "Proxmox"
-        url: "https://192.168.100.68"
+        url: "https://192.168.100.68:8006"
         node: "jj-pve"
         warning_value: 50
         danger_value: 80
