@@ -15,7 +15,6 @@ appConfig:
 # Main content - An array of sections, each containing an array of items
 sections:
 - name: Network Control
-  #icon: fas fa-network-wired
   - title: Pi-Hole-Primary
     description: DNS settings for ad & tracker blocking
     #icon: networking/pihole.png
