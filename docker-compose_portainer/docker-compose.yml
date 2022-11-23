@@ -10,7 +10,7 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ~/homelab-config/docker-compose_portainer/data:/data
+      - ~/homelab-config/docker-compose_portainer/portainer_data:/data
     ports:
       - 9000:9000
       - 8000:8000
