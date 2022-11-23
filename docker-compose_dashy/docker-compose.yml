@@ -19,8 +19,9 @@ services:
     # image: ghcr.io/lissy93/dashy or image: lissy93/dashy:arm64v8
 
     # Pass in your config file below, by specifying the path on your host machine
+    # TODO @yangjeep: Wait for https://github.com/portainer/portainer/issues/6390 resolution to come to Portainer CE and change to local storage
     volumes:
-      - ~/homelab-config/docker-compose_dashy/item-icons:/app/public/item-icons
+      - /home/yangjeep/homelab-config/docker-compose_dashy/item-icons:/app/public/item-icons
       - type: bind
         source: /home/yangjeep/homelab-config/docker-compose_dashy/config/conf.yml
         target: /app/public/conf.yml
@@ -46,8 +47,3 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-
-configs:
-  conf.yml:
-    file: ~/homelab-config/docker-compose_dashy/config/conf.yml
-    external: true
