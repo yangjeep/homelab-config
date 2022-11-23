@@ -28,7 +28,8 @@ services:
 
     # configs
     configs:
-      - dashy_config
+      - source: ~/homelab-config/docker-compose_dashy/config/conf.yml
+        target: /app/public/conf.yml
     # Set any environmental variables
     environment:
       - NODE_ENV=production
@@ -49,4 +50,4 @@ services:
 
 configs:
   dashy_config:
-    file: ~/homelab-config/docker-compose_dashy/config/config.yml
+      external: true
