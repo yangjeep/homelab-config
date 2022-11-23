@@ -3,8 +3,8 @@ services:
   headscale:
     image: headscale/headscale:latest
     volumes:
-      - ./config:/etc/headscale/
-      - ./data:/var/lib/headscale
+      - ~/headscale/config:/etc/headscale/
+      - ~/headscale/data:/var/lib/headscale
     ports:
       - 80:8080
     command: headscale serve
