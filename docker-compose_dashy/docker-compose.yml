@@ -21,9 +21,9 @@ services:
     # Pass in your config file below, by specifying the path on your host machine
     # TODO @yangjeep: Wait for https://github.com/portainer/portainer/issues/6390 resolution to come to Portainer CE and change to local storage
     volumes:
-      - /data/compose/14/docker-compose_dashy/item-icons:/app/public/item-icons
+      - /data/compose/14/docker-compose_dashy/public/item-icons:/app/public/item-icons
       - type: bind
-        source: /data/compose/14/docker-compose_dashyconfig/conf.yml
+        source: /data/compose/14/docker-compose_dashy/config/conf.yml
         target: /app/public/conf.yml
 
     # Set port that web service will be served on. Keep container port as 80
