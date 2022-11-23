@@ -6,7 +6,7 @@ services:
     environment:
       - TZ=America/Toronto
     volumes:
-      - heimdall:/config
+      - ${GIT_PROJECT_PATH}/docker-compose_heimdall/config:/config
     ports:
       - 80:80
       - 443:443
