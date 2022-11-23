@@ -1,7 +1,7 @@
 # Page meta info, like heading, footer text and nav links
 pageInfo:
-  title: Dashy
-  description: Welcome to your new dashboard!
+  title: dashy.yangjeep.io
+  description: Homelab Dashboard
   navLinks:
   - title: GitHub
     path: https://github.com/Lissy93/dashy
@@ -14,6 +14,19 @@ appConfig:
 
 # Main content - An array of sections, each containing an array of items
 sections:
+- name: Network Control
+  icon: fas fa-network-wired
+  - title: Pi-Hole-Primary
+    description: DNS settings for ad & tracker blocking
+    icon: networking/pihole.png
+    url: http://192.168.100.2/admin/
+    target: newtab
+  - title: Pi-Hole-Backup
+    description: DNS settings for ad & tracker blocking
+    icon: networking/pihole.png
+    url: http://192.168.100.4/admin/
+    target: newtab
+
 - name: Getting Started
   icon: fas fa-rocket
   items:
