@@ -1,0 +1,16 @@
+version: "2.1"
+services:
+  heimdall:
+    image: ghcr.io/linuxserver/heimdall
+    container_name: heimdall
+    environment:
+      - TZ=America/Toronto
+    volumes:
+      - ${GIT_PROJECT_PATH}/docker-compose_heimdall/config:/config
+    ports:
+      - 80:80
+      - 443:443
+    restart: unless-stopped
+
+volumes:
+      heimdall:

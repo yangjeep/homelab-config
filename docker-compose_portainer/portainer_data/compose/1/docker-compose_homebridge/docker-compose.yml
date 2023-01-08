@@ -1,0 +1,15 @@
+version: '2'
+services:
+    homebridge:
+        image: oznu/homebridge:ubuntu
+        container_name: homebridge
+        restart: always
+        network_mode: host
+        environment:                        
+          - HOMEBRIDGE_CONFIG_UI_PORT=8581            
+        volumes:                                
+          - ~/homelab-config/docker-compose_homebridge/:/homebridge
+
+volumes:
+  homebridge:
+
