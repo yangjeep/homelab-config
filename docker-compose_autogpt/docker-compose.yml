@@ -1,0 +1,27 @@
+version: "3.9"
+services:
+  auto-gpt:
+    image: significantgravitas/auto-gpt
+    depends_on:
+      - redis
+    env_file:
+      - ~/homelab-config/docker-compose_autogpt/.env
+    environment:
+      MEMORY_BACKEND: ${MEMORY_BACKEND:-redis}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+    profiles: ["exclude-from-up"]
+    volumes:
+      - ~/homelab-config/docker-compose_autogpt/auto_gpt_workspace:/app/autogpt/auto_gpt_workspace
+      - ~/homelab-config/docker-compose_autogpt/data:/app/data
+      ## allow auto-gpt to write logs to disk
+      - ~/homelab-config/docker-compose_autogpt/logs:/app/logs
+      ## uncomment following lines if you want to make use of these files
+      ## you must have them existing in the same folder as this docker-compose.yml
+      #- type: bind
+      #  source: ./azure.yaml
+      #  target: /app/azure.yaml
+      #- type: bind
+      #  source: ./ai_settings.yaml
+      #  target: /app/ai_settings.yaml
+  redis:
+    image: "redis/redis-stack-server:latest"
