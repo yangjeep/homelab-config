@@ -23,5 +23,6 @@ services:
       #- type: bind
       #  source: ./ai_settings.yaml
       #  target: /app/ai_settings.yaml
+      
   redis:
     image: "redis/redis-stack-server:latest"
