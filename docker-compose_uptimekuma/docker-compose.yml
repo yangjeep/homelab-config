@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    restart: always
+    volumes:
+      - /home/yangjeep/data/uptimekuma:/app/data
+    networks:
+      internal_net:
+        ipv4_address: "172.31.0.10"
+      default:
+    ports:
+      - "3001:3001"
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: always
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${CFD_TOKEN}
+    networks:
+      dmz_vlan:
+        ipv4_address: "10.25.254.130"
+      internal_net:
+
+volumes:
+  uptime-kuma:
+
+networks:
+  internal_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: "172.31.0.0/24"
+          gateway: "172.31.0.1"
+
+  dmz_vlan:
+    driver: macvlan
+    driver_opts:
+      parent: eth0.254
+    ipam:
+      config:
+        - subnet: "10.25.254.128/25"
+          gateway: "10.25.254.129"
+
