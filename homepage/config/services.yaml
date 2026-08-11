@@ -12,10 +12,10 @@
           url: https://192.168.253.1
           key: "{{HOMEPAGE_VAR_UNIFI_API_KEY}}"
           fields:
+            - uptime
             - wan
-            - lan_devices
+            - lan_users
             - wlan_users
-            - wlan_devices
 
     - Proxmox:
         icon: proxmox.png
@@ -84,14 +84,14 @@
 
     - Gitea:
         icon: gitea.png
-        href: https://192.168.253.210:3000/
+        href: http://192.168.253.210:3000/
         description: Git hosting
         proxmoxNode: pve-ec200a
         proxmoxVMID: 210
         proxmoxType: lxc
         widget:
           type: gitea
-          url: https://192.168.253.210:3000
+          url: http://192.168.253.210:3000
           key: "{{HOMEPAGE_VAR_GITEA_TOKEN}}"
 
     - Gitea Mirror:
