@@ -63,14 +63,6 @@
         proxmoxVMID: 112
         proxmoxType: lxc
 
-    - IronClaw:
-        icon: mdi-robot
-        href: https://10.25.254.188
-        description: IronClaw
-        proxmoxNode: pve-ec200a
-        proxmoxVMID: 800
-        proxmoxType: lxc
-
     - Gitea:
         icon: gitea.png
         href: https://192.168.253.210:3000/
