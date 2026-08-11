@@ -7,6 +7,15 @@
         icon: unifi.png
         href: https://192.168.253.1
         description: Network
+        widget:
+          type: unifi
+          url: https://192.168.253.1
+          key: "{{HOMEPAGE_VAR_UNIFI_API_KEY}}"
+          fields:
+            - wan
+            - lan_devices
+            - wlan_users
+            - wlan_devices
 
     - Proxmox:
         icon: proxmox.png
@@ -37,6 +46,10 @@
         description: Availability monitoring
         server: pi
         container: uptime-kuma
+        widget:
+          type: uptimekuma
+          url: https://uptime.yangjeep.net
+          slug: "{{HOMEPAGE_VAR_UPTIME_KUMA_SLUG}}"
 
     - Beszel:
         icon: beszel.png
@@ -44,6 +57,12 @@
         description: System monitoring
         server: pi
         container: beszel
+        widget:
+          type: beszel
+          url: https://beszel.yangjeep.net
+          username: "{{HOMEPAGE_VAR_BESZEL_USERNAME}}"
+          password: "{{HOMEPAGE_VAR_BESZEL_PASSWORD}}"
+          version: 2
 
 - Development:
 
@@ -70,6 +89,10 @@
         proxmoxNode: pve-ec200a
         proxmoxVMID: 210
         proxmoxType: lxc
+        widget:
+          type: gitea
+          url: https://192.168.253.210:3000
+          key: "{{HOMEPAGE_VAR_GITEA_TOKEN}}"
 
     - Gitea Mirror:
         icon: gitea.png
@@ -78,9 +101,6 @@
         proxmoxNode: pve-ec200a
         proxmoxVMID: 211
         proxmoxType: lxc
-
-
-
 
 - Media Automation:
 
@@ -115,6 +135,11 @@
         proxmoxNode: pve-ec200a
         proxmoxVMID: 302
         proxmoxType: lxc
+        widget:
+          type: qbittorrent
+          url: http://192.168.253.232:8080
+          username: "{{HOMEPAGE_VAR_QBITTORRENT_USERNAME}}"
+          password: "{{HOMEPAGE_VAR_QBITTORRENT_PASSWORD}}"
 
     - Jackett:
         icon: jackett.png
@@ -123,12 +148,22 @@
         proxmoxNode: pve-ec200a
         proxmoxVMID: 303
         proxmoxType: lxc
+        widget:
+          type: jackett
+          url: http://192.168.253.242:9117
+          password: "{{HOMEPAGE_VAR_JACKETT_PASSWORD}}"
 
 - Storage & Apps:
     - TrueNAS:
         icon: truenas.png
         href: https://192.168.253.100
         description: Primary storage
+        widget:
+          type: truenas
+          url: https://192.168.253.100
+          version: 2
+          key: "{{HOMEPAGE_VAR_TRUENAS_API_KEY}}"
+          enablePools: true
 
     - Immich:
         icon: immich.png
@@ -161,10 +196,9 @@
         widget:
           type: jellyfin
           url: http://192.168.253.100:30013
-          key: "{{HOMEPAGE_VAR_JELLYFIN_TOKEN}}" 
+          key: "{{HOMEPAGE_VAR_JELLYFIN_TOKEN}}"
           enableBlocks: true
           enableNowPlaying: true
-
 
     - Paperless:
         icon: paperless-ngx.png
@@ -184,3 +218,7 @@
         proxmoxNode: pve-ec200a
         proxmoxVMID: 401
         proxmoxType: lxc
+        widget:
+          type: wallos
+          url: https://192.168.253.219
+          key: "{{HOMEPAGE_VAR_WALLOS_API_KEY}}"
