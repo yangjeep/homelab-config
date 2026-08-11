@@ -16,6 +16,7 @@ services:
       - HOMEPAGE_VAR_RADARR_KEY=${HOMEPAGE_VAR_RADARR_TOKEN}
       - HOMEPAGE_VAR_JELLYFIN_TOKEN=${HOMEPAGE_VAR_JELLYFIN_TOKEN}
       - HOMEPAGE_VAR_IMMICH_TOKEN=${HOMEPAGE_VAR_IMMICH_TOKEN}
+      - HOMEPAGE_VAR_PLEX_TOKEN=${HOMEPAGE_VAR_PLEX_TOKEN}
 
     volumes:
       - /home/yangjeep/homelab-config/homepage/config/:/app/config
