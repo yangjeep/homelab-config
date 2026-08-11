@@ -1,0 +1,81 @@
+version: "3.8"
+
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    restart: always
+
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - HOMEPAGE_ALLOWED_HOSTS=${HOMEPAGE_ALLOWED_HOSTS}
+      - HOMEPAGE_VAR_PVE_TOKEN=${HOMEPAGE_VAR_PVE_TOKEN}
+      - HOMEPAGE_VAR_PAPERLESS_TOKEN=${HOMEPAGE_VAR_PAPERLESS_TOKEN}
+      - HOMEPAGE_VAR_SONARR_KEY=${HOMEPAGE_VAR_SONARR_TOKEN}
+      - HOMEPAGE_VAR_RADARR_KEY=${HOMEPAGE_VAR_RADARR_TOKEN}
+      - HOMEPAGE_VAR_JELLYFIN_TOKEN=${HOMEPAGE_VAR_JELLYFIN_TOKEN}
+      - HOMEPAGE_VAR_IMMICH_TOKEN=${HOMEPAGE_VAR_IMMICH_TOKEN}
+
+    volumes:
+      - /home/yangjeep/data/homepage:/app/config
+
+    ports:
+      - "3000:3000"
+
+    networks:
+      internal_net:
+        ipv4_address: "172.31.2.10"
+
+    depends_on:
+      - dockerproxy
+
+
+  dockerproxy:
+    image: ghcr.io/tecnativa/docker-socket-proxy:latest
+    container_name: homepage-dockerproxy
+    restart: always
+
+    environment:
+      - CONTAINERS=1
+      - SERVICES=1
+      - TASKS=1
+      - POST=0
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+    networks:
+      internal_net:
+        ipv4_address: "172.31.2.11"
+
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared-homepage
+    restart: always
+
+    command: tunnel run
+
+    environment:
+      - TUNNEL_TOKEN=${CFD_TOKEN}
+
+    networks:
+      internal_net:
+        ipv4_address: "172.31.2.12"
+
+      dmz_vlan:
+        ipv4_address: "10.25.254.132"
+
+
+networks:
+  internal_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: "172.31.2.0/24"
+          gateway: "172.31.2.1"
+
+  dmz_vlan:
+    external: true
+    name: dmz_vlan
