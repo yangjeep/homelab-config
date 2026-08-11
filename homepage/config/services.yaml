@@ -1,0 +1,194 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/configs/services/
+
+- Infrastructure:
+    - UniFi:
+        icon: unifi.png
+        href: https://192.168.253.1
+        description: Network
+
+    - Proxmox:
+        icon: proxmox.png
+        href: https://192.168.253.110:8006
+        description: EC200a virtualization
+        widget:
+          type: proxmox
+          url: https://192.168.253.110:8006
+          username: homepage-readonly@pam!homepage
+          password: "{{HOMEPAGE_VAR_PVE_TOKEN}}"
+          node: pve-ec200a
+          fields:
+            - vms
+            - lxc
+            - resources.cpu
+            - resources.mem
+
+    - Homepage:
+        icon: homepage.png
+        href: https://home.yangjeep.net
+        description: Homelab dashboard
+        server: pi
+        container: homepage
+
+    - Uptime Kuma:
+        icon: uptime-kuma.png
+        href: https://uptime.yangjeep.net
+        description: Availability monitoring
+        server: pi
+        container: uptime-kuma
+
+    - Beszel:
+        icon: beszel.png
+        href: https://beszel.yangjeep.net
+        description: System monitoring
+        server: pi
+        container: beszel
+
+- Development:
+
+    - LeaseLab Dev:
+        icon: mdi-home-edit
+        href: https://YOUR-LEASELAB-DEV
+        description: LeaseLab development
+        proxmoxNode: pve-ec200a
+        proxmoxVMID: 111
+        proxmoxType: lxc
+
+    - SmartSewer Dev:
+        icon: mdi-pipe
+        href: https://YOUR-SMARTSEWER-DEV
+        description: SmartSewer development
+        proxmoxNode: pve-ec200a
+        proxmoxVMID: 112
+        proxmoxType: lxc
+
+    - IronClaw:
+        icon: mdi-robot
+        href: https://10.25.254.188
+        description: IronClaw
+        proxmoxNode: pve-ec200a
+        proxmoxVMID: 800
+        proxmoxType: lxc
+
+    - Gitea:
+        icon: gitea.png
+        href: https://192.168.253.210:3000/
+        description: Git hosting
+        proxmoxNode: pve-ec200a
+        proxmoxVMID: 210
+        proxmoxType: lxc
+
+    - Gitea Mirror:
+        icon: gitea.png
+        href: http://192.168.253.211:4321/
+        description: Git syncing from Github to Gitea
+        proxmoxNode: pve-ec200a
+        proxmoxVMID: 211
+        proxmoxType: lxc
+
+
+
+
+- Media Automation:
+
+    - Radarr:
+        icon: radarr.png
+        href: http://192.168.253.221:7878
+        description: Movies
+        proxmoxNode: pve-ec200a
+        proxmoxVMID: 301
+        proxmoxType: lxc
+        widget:
+          type: radarr
+          url: http://192.168.253.221:7878
+          key: "{{HOMEPAGE_VAR_RADARR_KEY}}"
+
+    - Sonarr:
+        icon: sonarr.png
+        href: http://192.168.253.201:8989
+        description: TV
+        proxmoxNode: pve-ec200a
+        proxmoxVMID: 304
+        proxmoxType: lxc
+        widget:
+          type: sonarr
+          url: http://192.168.253.201:8989
+          key: "{{HOMEPAGE_VAR_SONARR_KEY}}"
+
+    - qBittorrent:
+        icon: qbittorrent.png
+        href: http://192.168.253.232:8080
+        description: Downloads
+        proxmoxNode: pve-ec200a
+        proxmoxVMID: 302
+        proxmoxType: lxc
+
+    - Jackett:
+        icon: jackett.png
+        href: http://192.168.253.242:9117
+        description: Indexers
+        proxmoxNode: pve-ec200a
+        proxmoxVMID: 303
+        proxmoxType: lxc
+
+- Storage & Apps:
+    - TrueNAS:
+        icon: truenas.png
+        href: https://192.168.253.100
+        description: Primary storage
+
+    - Immich:
+        icon: immich.png
+        href: https://immich.yangjeep.net
+        description: Photos
+        widget:
+          type: immich
+          url: http://192.168.253.100:30041
+          key: "{{HOMEPAGE_VAR_IMMICH_TOKEN}}"
+          version: 2
+          fields:
+            - users
+            - photos
+            - videos
+            - storage
+
+    - Plex:
+        icon: plex.png
+        href: http://192.168.253.100:32400
+        description: Media server
+        widget:
+          type: plex
+          url: http://192.168.253.100:32400
+          key: "{{HOMEPAGE_VAR_PLEX_TOKEN}}"
+
+    - Jellyfin:
+        icon: jellyfin.png
+        href: https://192.168.253.100:30013
+        description: Media server
+        widget:
+          type: jellyfin
+          url: http://192.168.253.100:30013
+          key: "{{HOMEPAGE_VAR_JELLYFIN_TOKEN}}" 
+          enableBlocks: true
+          enableNowPlaying: true
+
+
+    - Paperless:
+        icon: paperless-ngx.png
+        href: http://192.168.253.100:30070
+        description: Document management
+        widget:
+          type: paperlessngx
+          url: http://192.168.253.100:30070
+          key: "{{HOMEPAGE_VAR_PAPERLESS_TOKEN}}"
+
+- Utilities:
+
+    - Wallos:
+        icon: wallos.png
+        href: https://192.168.253.219
+        description: Subscriptions
+        proxmoxNode: pve-ec200a
+        proxmoxVMID: 401
+        proxmoxType: lxc

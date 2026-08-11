@@ -18,7 +18,7 @@ services:
       - HOMEPAGE_VAR_IMMICH_TOKEN=${HOMEPAGE_VAR_IMMICH_TOKEN}
 
     volumes:
-      - /home/yangjeep/data/homepage:/app/config
+      - /home/yangjeep/homelab-config/homepage/config/:/app/config
 
     ports:
       - "3000:3000"
