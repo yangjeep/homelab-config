@@ -1,0 +1,4 @@
+pve-ec200a:
+  url: https://192.168.253.110:8006
+  token: homepage-readonly@pam!homepage
+  secret: "{{HOMEPAGE_VAR_PVE_TOKEN}}"
