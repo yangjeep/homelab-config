@@ -1,0 +1,65 @@
+version: "3.8"
+
+services:
+  beszel:
+    image: henrygd/beszel:latest
+    container_name: beszel
+    restart: always
+
+    environment:
+      - APP_URL=${BESZEL_APP_URL}
+
+    volumes:
+      - /home/yangjeep/data/beszel:/beszel_data
+      - /home/yangjeep/data/beszel_socket:/beszel_socket
+
+    ports:
+      - "8090:8090"
+
+    networks:
+      internal_net:
+        ipv4_address: "172.31.1.10"
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared-beszel
+    restart: always
+
+    command: tunnel run
+
+    environment:
+      - TUNNEL_TOKEN=${CFD_TOKEN}
+
+    networks:
+      internal_net:
+        ipv4_address: "172.31.1.11"
+
+      dmz_vlan:
+        ipv4_address: "10.25.254.131"
+
+  beszel-agent:
+    image: henrygd/beszel-agent:latest
+    container_name: beszel-agent
+    restart: always
+
+    environment:
+      - LISTEN=/beszel_socket/beszel.sock
+      - KEY=${BESZEL_AGENT_KEY}
+      - TOKEN=${BESZEL_AGENT_TOKEN}
+
+    volumes:
+      - /home/yangjeep/data/beszel_agent:/var/lib/beszel-agent
+      - /home/yangjeep/data/beszel_socket:/beszel_socket
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+networks:
+  internal_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: "172.31.1.0/24"
+          gateway: "172.31.1.1"
+
+  dmz_vlan:
+    external: true
+    name: dmz_vlan
