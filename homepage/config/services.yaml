@@ -5,17 +5,17 @@
 - Infrastructure:
     - UniFi:
         icon: unifi.png
-        href: https://192.168.253.1
+        href: https://192.168.100.1
         description: Network
         widget:
           type: unifi
-          url: https://192.168.253.1
+          url: https://192.168.253.65
           key: "{{HOMEPAGE_VAR_UNIFI_API_KEY}}"
           fields:
+            - uptime
             - wan
-            - lan_devices
+            - lan_users
             - wlan_users
-            - wlan_devices
 
     - Proxmox:
         icon: proxmox.png
@@ -59,7 +59,7 @@
         container: beszel
         widget:
           type: beszel
-          url: https://beszel.yangjeep.net
+          url: http://beszel.yangjeep.net
           username: "{{HOMEPAGE_VAR_BESZEL_USERNAME}}"
           password: "{{HOMEPAGE_VAR_BESZEL_PASSWORD}}"
           version: 2
@@ -91,7 +91,7 @@
         proxmoxType: lxc
         widget:
           type: gitea
-          url: https://192.168.253.210:3000
+          url: http://192.168.253.210:3000
           key: "{{HOMEPAGE_VAR_GITEA_TOKEN}}"
 
     - Gitea Mirror:
@@ -130,14 +130,14 @@
 
     - qBittorrent:
         icon: qbittorrent.png
-        href: http://192.168.253.232:8080
+        href: http://192.168.253.232:8090
         description: Downloads
         proxmoxNode: pve-ec200a
         proxmoxVMID: 302
         proxmoxType: lxc
         widget:
           type: qbittorrent
-          url: http://192.168.253.232:8080
+          url: http://192.168.253.232:8090
           username: "{{HOMEPAGE_VAR_QBITTORRENT_USERNAME}}"
           password: "{{HOMEPAGE_VAR_QBITTORRENT_PASSWORD}}"
 
@@ -220,5 +220,5 @@
         proxmoxType: lxc
         widget:
           type: wallos
-          url: https://192.168.253.219
+          url: http://192.168.253.219
           key: "{{HOMEPAGE_VAR_WALLOS_API_KEY}}"
