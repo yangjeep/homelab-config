@@ -84,7 +84,7 @@
 
     - Gitea:
         icon: gitea.png
-        href: https://192.168.253.210:3000/
+        href: http://192.168.253.210:3000/
         description: Git hosting
         proxmoxNode: pve-ec200a
         proxmoxVMID: 210
