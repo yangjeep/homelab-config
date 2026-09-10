@@ -35,12 +35,13 @@ services:
       - "3000:3000"
 
     networks:
-      internal_net:
+      app_egress:
+        gw_priority: 1
+      tunnel_link:
         ipv4_address: "172.31.2.10"
 
     depends_on:
       - dockerproxy
-
 
   dockerproxy:
     image: ghcr.io/tecnativa/docker-socket-proxy:latest
@@ -57,9 +58,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
     networks:
-      internal_net:
-        ipv4_address: "172.31.2.11"
-
+      app_egress:
 
   cloudflared:
     image: cloudflare/cloudflared:latest
@@ -72,21 +71,27 @@ services:
       - TUNNEL_TOKEN=${CFD_TOKEN}
 
     networks:
-      internal_net:
+      tunnel_link:
         ipv4_address: "172.31.2.12"
-
       dmz_vlan:
         ipv4_address: "10.25.254.132"
-
+        gw_priority: 1
 
 networks:
-  internal_net:
+  # Homepage keeps LAN/API access and the Docker socket proxy on this path.
+  app_egress:
     driver: bridge
+
+  # Private transport between cloudflared and Homepage. No host/LAN egress.
+  tunnel_link:
+    driver: bridge
+    internal: true
     ipam:
       config:
         - subnet: "172.31.2.0/24"
           gateway: "172.31.2.1"
 
+  # Internet egress for cloudflared is forced through the DMZ macvlan.
   dmz_vlan:
     external: true
     name: dmz_vlan
