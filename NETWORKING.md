@@ -22,25 +22,23 @@ Current DMZ connector addresses:
 
 ## External `dmz_vlan`
 
-The Compose stacks reference `dmz_vlan` as an external Docker network. Runtime inspection on the Raspberry Pi currently reports:
+The Compose stacks reference `dmz_vlan` as an external Docker network. The verified UniFi `lab-DMZ` and Raspberry Pi Docker network definition is:
 
 ```text
 network: dmz_vlan
 driver: macvlan
 parent: end0.254
 subnet: 10.25.254.0/24
-gateway: 10.25.254.1
+gateway: 10.25.254.254
 ```
 
-Do **not** treat those IPAM values as canonical until they are checked against the UniFi `lab-DMZ` network definition. An older Compose revision used `10.25.254.128/25` with gateway `10.25.254.129`; forcing `cloudflared` to use the DMZ exposed this previously hidden discrepancy. The Docker network must match the UniFi VLAN CIDR and gateway exactly.
-
-Before recreating `dmz_vlan`, verify the UniFi values and then use the matching network definition, for example:
+Recreate it after a host rebuild with:
 
 ```bash
 docker network create \
   --driver macvlan \
-  --subnet <lab-DMZ CIDR> \
-  --gateway <lab-DMZ gateway> \
+  --subnet 10.25.254.0/24 \
+  --gateway 10.25.254.254 \
   --opt parent=end0.254 \
   dmz_vlan
 ```
@@ -74,13 +72,19 @@ For each `cloudflared` container, verify that public egress uses the DMZ address
 PID=$(docker inspect -f '{{.State.Pid}}' cloudflared-uptimekuma)
 sudo nsenter -t "$PID" -n ip route
 sudo nsenter -t "$PID" -n ip route get 1.1.1.1
+sudo nsenter -t "$PID" -n ip route get 198.41.192.167
 ```
 
-Expected, once `dmz_vlan` matches UniFi:
+Verified on Uptime Kuma's connector:
 
 ```text
-default via <lab-DMZ gateway> dev <dmz interface>
-1.1.1.1 via <lab-DMZ gateway> dev <dmz interface> src 10.25.254.130
+default via 10.25.254.254 dev eth1
+10.25.254.0/24 dev eth1 proto kernel scope link src 10.25.254.130
+172.31.0.0/24 dev eth0 proto kernel scope link src 172.31.0.2
+1.1.1.1 via 10.25.254.254 dev eth1 src 10.25.254.130
+198.41.192.167 via 10.25.254.254 dev eth1 src 10.25.254.130
 ```
 
-Then verify a lab destination from the `cloudflared` namespace is blocked by the UniFi `DMZ -> lab` policy while the application itself can still reach the destinations allowed by `lab` policy.
+This confirms both generic Internet traffic and Cloudflare edge traffic leave through the DMZ interface, not through the Pi's lab address.
+
+A lab destination attempted from the `cloudflared` namespace should be blocked by the UniFi `DMZ -> lab` policy, while the application itself can reach destinations allowed by `lab` policy.
