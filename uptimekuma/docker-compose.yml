@@ -13,7 +13,9 @@ services:
       - "3001:3001"
 
     networks:
-      internal_net:
+      app_egress:
+        gw_priority: 1
+      tunnel_link:
         ipv4_address: "172.31.0.10"
 
   cloudflared:
@@ -27,18 +29,26 @@ services:
       - TUNNEL_TOKEN=${CFD_TOKEN}
 
     networks:
-      internal_net:
+      tunnel_link:
       dmz_vlan:
         ipv4_address: "10.25.254.130"
+        gw_priority: 1
 
 networks:
-  internal_net:
+  # Application egress stays on the Docker host/LAN path for internal monitoring.
+  app_egress:
     driver: bridge
+
+  # Private transport between cloudflared and the application. No host/LAN egress.
+  tunnel_link:
+    driver: bridge
+    internal: true
     ipam:
       config:
         - subnet: "172.31.0.0/24"
           gateway: "172.31.0.1"
 
+  # Internet egress for cloudflared is forced through the DMZ macvlan.
   dmz_vlan:
     external: true
     name: dmz_vlan
