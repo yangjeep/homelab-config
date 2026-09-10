@@ -13,8 +13,11 @@ services:
       - "3001:3001"
 
     networks:
-      app_egress:
+      # Normal application traffic leaves through the Pi's lab-facing host route.
+      # Docker SNAT makes UniFi see the Pi's lab address as the source.
+      lab_egress:
         gw_priority: 1
+      # Private origin path used only by cloudflared -> Kuma.
       tunnel_link:
         ipv4_address: "172.31.0.10"
 
@@ -29,14 +32,18 @@ services:
       - TUNNEL_TOKEN=${CFD_TOKEN}
 
     networks:
+      # No LAN egress is available on this link.
       tunnel_link:
+      # cloudflared's only external path is the DMZ macvlan.
       dmz_vlan:
         ipv4_address: "10.25.254.130"
         gw_priority: 1
 
 networks:
-  # Application egress stays on the Docker host/LAN path for internal monitoring.
-  app_egress:
+  # Application egress. This is intentionally a Docker bridge rather than a
+  # macvlan so Kuma can still reach services on the Pi host. Docker SNAT sends
+  # traffic out through the Pi's lab interface, so UniFi applies lab-zone policy.
+  lab_egress:
     driver: bridge
 
   # Private transport between cloudflared and the application. No host/LAN egress.
