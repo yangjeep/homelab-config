@@ -35,8 +35,11 @@ services:
       - "3000:3000"
 
     networks:
-      app_egress:
+      # Normal dashboard/API traffic leaves through the Pi's lab-facing host route.
+      # Docker SNAT makes UniFi see the Pi's lab address as the source.
+      lab_egress:
         gw_priority: 1
+      # Private origin path used only by cloudflared -> Homepage.
       tunnel_link:
         ipv4_address: "172.31.2.10"
 
@@ -58,7 +61,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
     networks:
-      app_egress:
+      lab_egress:
 
   cloudflared:
     image: cloudflare/cloudflared:latest
@@ -71,15 +74,18 @@ services:
       - TUNNEL_TOKEN=${CFD_TOKEN}
 
     networks:
+      # No LAN egress is available on this link.
       tunnel_link:
         ipv4_address: "172.31.2.12"
+      # cloudflared's only external path is the DMZ macvlan.
       dmz_vlan:
         ipv4_address: "10.25.254.132"
         gw_priority: 1
 
 networks:
-  # Homepage keeps LAN/API access and the Docker socket proxy on this path.
-  app_egress:
+  # Homepage keeps normal host/LAN/API reachability on a Docker bridge. Docker
+  # SNAT sends it out through the Pi's lab interface, so UniFi applies lab policy.
+  lab_egress:
     driver: bridge
 
   # Private transport between cloudflared and Homepage. No host/LAN egress.
