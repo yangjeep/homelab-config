@@ -17,7 +17,9 @@ services:
       - "8090:8090"
 
     networks:
-      internal_net:
+      app_egress:
+        gw_priority: 1
+      tunnel_link:
         ipv4_address: "172.31.1.10"
 
   cloudflared:
@@ -31,11 +33,11 @@ services:
       - TUNNEL_TOKEN=${CFD_TOKEN}
 
     networks:
-      internal_net:
+      tunnel_link:
         ipv4_address: "172.31.1.11"
-
       dmz_vlan:
         ipv4_address: "10.25.254.131"
+        gw_priority: 1
 
   beszel-agent:
     image: henrygd/beszel-agent:latest
@@ -53,13 +55,20 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
 networks:
-  internal_net:
+  # Beszel hub egress stays on the Docker host/LAN path for agent monitoring.
+  app_egress:
     driver: bridge
+
+  # Private transport between cloudflared and the Beszel hub. No host/LAN egress.
+  tunnel_link:
+    driver: bridge
+    internal: true
     ipam:
       config:
         - subnet: "172.31.1.0/24"
           gateway: "172.31.1.1"
 
+  # Internet egress for cloudflared is forced through the DMZ macvlan.
   dmz_vlan:
     external: true
     name: dmz_vlan
