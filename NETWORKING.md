@@ -12,13 +12,15 @@ The application is intentionally **not** attached directly to a lab macvlan. Doc
 
 `cloudflared` is never attached to `lab_egress`. Its only application-facing path is `tunnel_link`, and its only external path is `dmz_vlan`. This is the actual DMZ boundary.
 
-Current DMZ connector addresses:
+DMZ connector addresses (applied when the updated stacks are deployed):
 
 | Stack | DMZ address |
 | --- | --- |
-| Uptime Kuma | `10.25.254.130` |
-| Beszel | `10.25.254.131` |
-| Homepage | `10.25.254.132` |
+| Uptime Kuma | `10.25.254.211` |
+| Beszel | `10.25.254.212` |
+| Homepage | `10.25.254.213` |
+
+These static addresses are outside the UniFi DHCP pool (`10.25.254.128–10.25.254.192`). Each connector also pins its DMZ MAC to keep its identity stable across recreation. PVE runners continue to use DHCP.
 
 ## External `dmz_vlan`
 
@@ -75,14 +77,14 @@ sudo nsenter -t "$PID" -n ip route get 1.1.1.1
 sudo nsenter -t "$PID" -n ip route get 198.41.192.167
 ```
 
-Verified on Uptime Kuma's connector:
+Expected on Uptime Kuma's connector after deployment:
 
 ```text
 default via 10.25.254.254 dev eth1
-10.25.254.0/24 dev eth1 proto kernel scope link src 10.25.254.130
+10.25.254.0/24 dev eth1 proto kernel scope link src 10.25.254.211
 172.31.0.0/24 dev eth0 proto kernel scope link src 172.31.0.2
-1.1.1.1 via 10.25.254.254 dev eth1 src 10.25.254.130
-198.41.192.167 via 10.25.254.254 dev eth1 src 10.25.254.130
+1.1.1.1 via 10.25.254.254 dev eth1 src 10.25.254.211
+198.41.192.167 via 10.25.254.254 dev eth1 src 10.25.254.211
 ```
 
 This confirms both generic Internet traffic and Cloudflare edge traffic leave through the DMZ interface, not through the Pi's lab address.

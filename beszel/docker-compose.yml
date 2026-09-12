@@ -41,7 +41,8 @@ services:
         ipv4_address: "172.31.1.11"
       # cloudflared's only external path is the DMZ macvlan.
       dmz_vlan:
-        ipv4_address: "10.25.254.131"
+        ipv4_address: "10.25.254.212"
+        mac_address: "06:ec:61:4d:bf:8d"
         gw_priority: 1
 
   beszel-agent:
