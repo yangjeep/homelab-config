@@ -40,16 +40,21 @@
         server: pi
         container: homepage
 
-    - Uptime Kuma:
+    - Uptime Kuma Home:
         icon: uptime-kuma.png
-        href: https://uptime.yangjeep.net
-        description: Availability monitoring
+        href: https://kuma-home.yangjeep.net/
+        description: Home availability monitoring
         server: pi
         container: uptime-kuma
         widget:
           type: uptimekuma
-          url: https://uptime.yangjeep.net
+          url: https://kuma-home.yangjeep.net/
           slug: "{{HOMEPAGE_VAR_UPTIME_KUMA_SLUG}}"
+
+    - Uptime Kuma Remote:
+        icon: uptime-kuma.png
+        href: https://uptime.yangjeep.net/dashboard
+        description: Remote availability monitoring
 
     - Beszel:
         icon: beszel.png
@@ -84,19 +89,19 @@
 
     - Gitea:
         icon: gitea.png
-        href: http://192.168.253.210:3000/
+        href: http://192.168.253.100:30008/
         description: Git hosting
         proxmoxNode: pve-ec200a
         proxmoxVMID: 210
         proxmoxType: lxc
         widget:
           type: gitea
-          url: http://192.168.253.210:3000
+          url: http://192.168.253.100:30008
           key: "{{HOMEPAGE_VAR_GITEA_TOKEN}}"
 
     - Gitea Mirror:
         icon: gitea.png
-        href: http://192.168.253.211:4321/
+        href: http://192.168.253.100:34321/
         description: Git syncing from Github to Gitea
         proxmoxNode: pve-ec200a
         proxmoxVMID: 211
@@ -130,14 +135,14 @@
 
     - qBittorrent:
         icon: qbittorrent.png
-        href: http://192.168.253.232:8090
+        href: http://192.168.253.100:30024/
         description: Downloads
         proxmoxNode: pve-ec200a
         proxmoxVMID: 302
         proxmoxType: lxc
         widget:
           type: qbittorrent
-          url: http://192.168.253.232:8090
+          url: http://192.168.253.100:30024
           username: "{{HOMEPAGE_VAR_QBITTORRENT_USERNAME}}"
           password: "{{HOMEPAGE_VAR_QBITTORRENT_PASSWORD}}"
 
@@ -165,6 +170,18 @@
           key: "{{HOMEPAGE_VAR_TRUENAS_API_KEY}}"
           enablePools: true
 
+    - Frigate:
+        icon: frigate.png
+        href: https://192.168.253.100:30193/
+        description: Camera NVR
+        widget:
+          type: frigate
+          url: https://192.168.253.100:30193
+          fields:
+            - cameras
+            - uptime
+            - version
+
     - Immich:
         icon: immich.png
         href: https://immich.yangjeep.net
@@ -191,7 +208,7 @@
 
     - Jellyfin:
         icon: jellyfin.png
-        href: https://192.168.253.100:30013
+        href: http://192.168.253.100:30013/
         description: Media server
         widget:
           type: jellyfin
