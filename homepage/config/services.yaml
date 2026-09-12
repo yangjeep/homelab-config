@@ -181,6 +181,8 @@
         widget:
           type: frigate
           url: https://192.168.253.100:30193
+          username: "{{HOMEPAGE_VAR_FRIGATE_USERNAME}}"
+          password: "{{HOMEPAGE_VAR_FRIGATE_PASSWORD}}"
           fields:
             - cameras
             - uptime
