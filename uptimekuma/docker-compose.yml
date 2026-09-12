@@ -37,6 +37,7 @@ services:
       # cloudflared's only external path is the DMZ macvlan.
       dmz_vlan:
         ipv4_address: "10.25.254.130"
+        mac_address: "76:16:31:69:e7:9b"
         gw_priority: 1
 
 networks:
