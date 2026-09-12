@@ -220,6 +220,7 @@
           type: jellyfin
           url: http://192.168.253.100:30013
           key: "{{HOMEPAGE_VAR_JELLYFIN_TOKEN}}"
+          version: 2
           enableBlocks: true
           enableNowPlaying: true
 
