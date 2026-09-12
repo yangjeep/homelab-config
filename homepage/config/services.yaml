@@ -49,12 +49,16 @@
         widget:
           type: uptimekuma
           url: https://kuma-home.yangjeep.net/
-          slug: "{{HOMEPAGE_VAR_UPTIME_KUMA_SLUG}}"
+          slug: "{{HOMEPAGE_VAR_UPTIME_KUMA_HOME_SLUG}}"
 
     - Uptime Kuma Remote:
         icon: uptime-kuma.png
         href: https://uptime.yangjeep.net/dashboard
         description: Remote availability monitoring
+        widget:
+          type: uptimekuma
+          url: https://uptime.yangjeep.net
+          slug: "{{HOMEPAGE_VAR_UPTIME_KUMA_REMOTE_SLUG}}"
 
     - Beszel:
         icon: beszel.png
