@@ -1,0 +1,239 @@
+[
+  {
+    "uid": "apps-script-collector-stale",
+    "orgID": 1,
+    "folderUID": "homelab-cloud",
+    "ruleGroup": "Apps Script",
+    "title": "Apps Script collector stale",
+    "condition": "B",
+    "for": "5m",
+    "noDataState": "Alerting",
+    "execErrState": "Error",
+    "isPaused": false,
+    "annotations": {
+      "summary": "The five-minute Apps Script metadata collector has not completed successfully for 20 minutes. Check LXC 911, OAuth validity, the timer, and Google API reachability.",
+      "dashboard_url": "https://yangjeep.grafana.net/d/homelab-cloud-apps-script",
+      "runbook_url": "https://github.com/yangjeep/homelab-config/tree/main/observability/apps-script"
+    },
+    "labels": {
+      "severity": "warning",
+      "subsystem": "apps_script"
+    },
+    "data": [
+      {
+        "refId": "A",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 1800,
+          "to": 0
+        },
+        "datasourceUid": "grafanacloud-prom",
+        "model": {
+          "refId": "A",
+          "expr": "time() - homelab_apps_script_collector_last_success_timestamp_seconds{job=\"apps-script-observer\"} > bool 1200",
+          "instant": true,
+          "range": false,
+          "intervalMs": 30000,
+          "maxDataPoints": 43200,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafanacloud-prom"
+          }
+        }
+      },
+      {
+        "refId": "B",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "B",
+          "type": "threshold",
+          "expression": "A",
+          "conditions": [
+            {
+              "evaluator": {
+                "type": "gt",
+                "params": [
+                  0
+                ]
+              },
+              "operator": {
+                "type": "and"
+              },
+              "reducer": {
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ],
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "uid": "apps-script-repeated-failures",
+    "orgID": 1,
+    "folderUID": "homelab-cloud",
+    "ruleGroup": "Apps Script",
+    "title": "Apps Script repeated failures",
+    "condition": "B",
+    "for": "0s",
+    "noDataState": "OK",
+    "execErrState": "Error",
+    "isPaused": false,
+    "annotations": {
+      "summary": "At least two Apps Script executions failed within 30 minutes. Inspect recent failure metadata before invoking Hermes diagnosis.",
+      "dashboard_url": "https://yangjeep.grafana.net/d/homelab-cloud-apps-script",
+      "runbook_url": "https://github.com/yangjeep/homelab-config/tree/main/observability/apps-script"
+    },
+    "labels": {
+      "severity": "warning",
+      "subsystem": "apps_script"
+    },
+    "data": [
+      {
+        "refId": "A",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 1800,
+          "to": 0
+        },
+        "datasourceUid": "grafanacloud-prom",
+        "model": {
+          "refId": "A",
+          "expr": "sum(increase(homelab_apps_script_executions_terminal_total{job=\"apps-script-observer\",status=\"FAILED\"}[30m])) >= bool 2",
+          "instant": true,
+          "range": false,
+          "intervalMs": 30000,
+          "maxDataPoints": 43200,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafanacloud-prom"
+          }
+        }
+      },
+      {
+        "refId": "B",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "B",
+          "type": "threshold",
+          "expression": "A",
+          "conditions": [
+            {
+              "evaluator": {
+                "type": "gt",
+                "params": [
+                  0
+                ]
+              },
+              "operator": {
+                "type": "and"
+              },
+              "reducer": {
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ],
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "uid": "apps-script-timeout",
+    "orgID": 1,
+    "folderUID": "homelab-cloud",
+    "ruleGroup": "Apps Script",
+    "title": "Apps Script execution timeout",
+    "condition": "B",
+    "for": "0s",
+    "noDataState": "OK",
+    "execErrState": "Error",
+    "isPaused": false,
+    "annotations": {
+      "summary": "An Apps Script execution timed out within 10 minutes. Inspect execution metadata and duration; no script schedule is assumed.",
+      "dashboard_url": "https://yangjeep.grafana.net/d/homelab-cloud-apps-script",
+      "runbook_url": "https://github.com/yangjeep/homelab-config/tree/main/observability/apps-script"
+    },
+    "labels": {
+      "severity": "warning",
+      "subsystem": "apps_script"
+    },
+    "data": [
+      {
+        "refId": "A",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 1800,
+          "to": 0
+        },
+        "datasourceUid": "grafanacloud-prom",
+        "model": {
+          "refId": "A",
+          "expr": "sum(increase(homelab_apps_script_executions_terminal_total{job=\"apps-script-observer\",status=\"TIMED_OUT\"}[10m])) > bool 0",
+          "instant": true,
+          "range": false,
+          "intervalMs": 30000,
+          "maxDataPoints": 43200,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafanacloud-prom"
+          }
+        }
+      },
+      {
+        "refId": "B",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "B",
+          "type": "threshold",
+          "expression": "A",
+          "conditions": [
+            {
+              "evaluator": {
+                "type": "gt",
+                "params": [
+                  0
+                ]
+              },
+              "operator": {
+                "type": "and"
+              },
+              "reducer": {
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ],
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          }
+        }
+      }
+    ]
+  }
+]
