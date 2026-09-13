@@ -11,7 +11,20 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "s"
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1200
+              }
+            ]
+          }
         }
       },
       "gridPos": {
@@ -35,8 +48,9 @@
           "refId": "A"
         }
       ],
-      "title": "Collector Last Success Age",
-      "type": "stat"
+      "title": "Collector Age",
+      "type": "stat",
+      "description": "Age of the last fully successful collector poll. Green below 20 minutes; red at or above 20 minutes, matching the collector-stale alert threshold."
     },
     {
       "datasource": {
@@ -44,7 +58,9 @@
         "uid": "grafanacloud-prom"
       },
       "fieldConfig": {
-        "defaults": {}
+        "defaults": {
+          "decimals": 2
+        }
       },
       "gridPos": {
         "h": 5,
@@ -58,7 +74,8 @@
           "calcs": [
             "lastNotNull"
           ]
-        }
+        },
+        "colorMode": "none"
       },
       "targets": [
         {
@@ -67,8 +84,9 @@
           "refId": "A"
         }
       ],
-      "title": "Collector Failures (24h)",
-      "type": "stat"
+      "title": "Collector Fail Est.",
+      "type": "stat",
+      "description": "Prometheus increase() estimate over the trailing 24 hours. Fractional values are expected because Prometheus extrapolates counter samples at the range boundaries."
     },
     {
       "datasource": {
@@ -90,7 +108,8 @@
           "calcs": [
             "lastNotNull"
           ]
-        }
+        },
+        "colorMode": "none"
       },
       "targets": [
         {
@@ -99,7 +118,7 @@
           "refId": "A"
         }
       ],
-      "title": "Executions (24h)",
+      "title": "Runs (24h)",
       "type": "stat"
     },
     {
@@ -109,7 +128,7 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "percentunit"
+          "unit": "percent"
         }
       },
       "gridPos": {
@@ -124,7 +143,8 @@
           "calcs": [
             "lastNotNull"
           ]
-        }
+        },
+        "colorMode": "none"
       },
       "targets": [
         {
@@ -133,7 +153,7 @@
           "refId": "A"
         }
       ],
-      "title": "Success Rate (24h)",
+      "title": "Success % (24h)",
       "type": "stat"
     },
     {
@@ -156,7 +176,8 @@
           "calcs": [
             "lastNotNull"
           ]
-        }
+        },
+        "colorMode": "none"
       },
       "targets": [
         {
@@ -165,7 +186,7 @@
           "refId": "A"
         }
       ],
-      "title": "Failures (24h)",
+      "title": "Failed (24h)",
       "type": "stat"
     },
     {
@@ -188,7 +209,8 @@
           "calcs": [
             "lastNotNull"
           ]
-        }
+        },
+        "colorMode": "none"
       },
       "targets": [
         {
@@ -197,7 +219,7 @@
           "refId": "A"
         }
       ],
-      "title": "Timeouts (24h)",
+      "title": "Timeout 24h",
       "type": "stat"
     },
     {
@@ -340,7 +362,11 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "s"
+          "unit": "s",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "gray"
+          }
         }
       },
       "gridPos": {
@@ -355,7 +381,8 @@
           "calcs": [
             "lastNotNull"
           ]
-        }
+        },
+        "colorMode": "none"
       },
       "targets": [
         {
@@ -364,8 +391,9 @@
           "refId": "A"
         }
       ],
-      "title": "Last Successful Execution by Script",
-      "type": "stat"
+      "title": "Last Success by Script",
+      "type": "stat",
+      "description": "Execution age by script. Color is intentionally neutral because no script schedule or freshness SLA has been established."
     },
     {
       "datasource": {
@@ -397,7 +425,7 @@
             "uid": "grafanacloud-logs"
           },
           "editorMode": "code",
-          "expr": "{unit=\"apps-script-observer.service\"} | json | event=\"apps_script.execution_terminal\" | line_format \"{{.start_time}} script={{.script}} function={{.function}} status={{.status}} type={{.type}} duration={{.duration_seconds}}s\"",
+          "expr": "{service=\"apps-script-observer\"} | json | event=\"apps_script.execution_terminal\" | line_format \"{{.start_time}} script={{.script}} function={{.function}} status={{.status}} type={{.type}} duration={{.duration_seconds}}s\"",
           "instant": false,
           "maxLines": 100,
           "queryType": "range",
@@ -438,7 +466,7 @@
             "uid": "grafanacloud-logs"
           },
           "editorMode": "code",
-          "expr": "{unit=\"apps-script-observer.service\"} | json | event=\"apps_script.execution_terminal\" | status=~\"FAILED|TIMED_OUT|CANCELED\" | line_format \"{{.start_time}} script={{.script}} function={{.function}} status={{.status}} type={{.type}} duration={{.duration_seconds}}s\"",
+          "expr": "{service=\"apps-script-observer\"} | json | event=\"apps_script.execution_terminal\" | status=~\"FAILED|TIMED_OUT|CANCELED\" | line_format \"{{.start_time}} script={{.script}} function={{.function}} status={{.status}} type={{.type}} duration={{.duration_seconds}}s\"",
           "instant": false,
           "maxLines": 100,
           "queryType": "range",
