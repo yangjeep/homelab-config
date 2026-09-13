@@ -33,6 +33,17 @@
             - resources.cpu
             - resources.mem
 
+    - Grafana:
+        icon: grafana.png
+        href: http://192.168.253.228:3000/d/homelab-noc/homelab-noc
+        description: Homelab metrics and logs
+        siteMonitor: http://192.168.253.228:3000/api/health
+
+    - Hermes:
+        icon: mdi-robot
+        href: https://t.me/yangjeep_clawbot
+        description: Private homelab assistant on Telegram
+
     - Homepage:
         icon: homepage.png
         href: https://home.yangjeep.net
@@ -114,53 +125,45 @@
 - Media Automation:
 
     - Radarr:
+        siteMonitor: http://192.168.253.100:30025/ping
         icon: radarr.png
-        href: http://192.168.253.221:7878
+        href: http://192.168.253.100:30025
         description: Movies
-        proxmoxNode: pve-ec200a
-        proxmoxVMID: 301
-        proxmoxType: lxc
         widget:
           type: radarr
-          url: http://192.168.253.221:7878
+          url: http://192.168.253.100:30025
           key: "{{HOMEPAGE_VAR_RADARR_KEY}}"
 
     - Sonarr:
+        siteMonitor: http://192.168.253.100:30113/ping
         icon: sonarr.png
-        href: http://192.168.253.201:8989
+        href: http://192.168.253.100:30113
         description: TV
-        proxmoxNode: pve-ec200a
-        proxmoxVMID: 304
-        proxmoxType: lxc
         widget:
           type: sonarr
-          url: http://192.168.253.201:8989
+          url: http://192.168.253.100:30113
           key: "{{HOMEPAGE_VAR_SONARR_KEY}}"
 
     - qBittorrent:
+        siteMonitor: http://192.168.253.100:30024/
         icon: qbittorrent.png
         href: http://192.168.253.100:30024/
         description: Downloads
-        proxmoxNode: pve-ec200a
-        proxmoxVMID: 302
-        proxmoxType: lxc
         widget:
           type: qbittorrent
           url: http://192.168.253.100:30024
           username: "{{HOMEPAGE_VAR_QBITTORRENT_USERNAME}}"
           password: "{{HOMEPAGE_VAR_QBITTORRENT_PASSWORD}}"
 
-    - Jackett:
-        icon: jackett.png
-        href: http://192.168.253.242:9117
+    - Prowlarr:
+        siteMonitor: http://192.168.253.100:30050/ping
+        icon: prowlarr.png
+        href: http://192.168.253.100:30050
         description: Indexers
-        proxmoxNode: pve-ec200a
-        proxmoxVMID: 303
-        proxmoxType: lxc
         widget:
-          type: jackett
-          url: http://192.168.253.242:9117
-          password: "{{HOMEPAGE_VAR_JACKETT_PASSWORD}}"
+          type: prowlarr
+          url: http://192.168.253.100:30050
+          key: "{{HOMEPAGE_VAR_PROWLARR_KEY}}"
 
 - Storage & Apps:
     - TrueNAS:
@@ -204,6 +207,7 @@
             - storage
 
     - Plex:
+        siteMonitor: http://192.168.253.100:32400/identity
         icon: plex.png
         href: http://192.168.253.100:32400
         description: Media server
@@ -213,6 +217,7 @@
           key: "{{HOMEPAGE_VAR_PLEX_TOKEN}}"
 
     - Jellyfin:
+        siteMonitor: http://192.168.253.100:30013/health
         icon: jellyfin.png
         href: http://192.168.253.100:30013/
         description: Media server
