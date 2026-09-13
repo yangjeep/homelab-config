@@ -1,0 +1,89 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "panels": [
+    {
+      "datasource": {"type": "prometheus", "uid": "homelab-prometheus"},
+      "fieldConfig": {"defaults": {"unit": "s"}},
+      "gridPos": {"h": 6, "w": 8, "x": 0, "y": 0},
+      "id": 1,
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}},
+      "targets": [
+        {
+          "expr": "time() - homelab_apps_script_collector_last_success_timestamp_seconds",
+          "refId": "A"
+        }
+      ],
+      "title": "Collector Last Success Age",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "homelab-prometheus"},
+      "fieldConfig": {"defaults": {}},
+      "gridPos": {"h": 6, "w": 8, "x": 8, "y": 0},
+      "id": 2,
+      "targets": [
+        {"expr": "increase(homelab_apps_script_collector_failures_total[24h])", "refId": "A"}
+      ],
+      "title": "Collector Failures (24h)",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "homelab-prometheus"},
+      "fieldConfig": {"defaults": {}},
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 6},
+      "id": 3,
+      "targets": [
+        {
+          "expr": "sum by (script, type, status) (increase(homelab_apps_script_executions_terminal_total[$__rate_interval]))",
+          "legendFormat": "{{script}} {{type}} {{status}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Terminal Executions",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "homelab-prometheus"},
+      "fieldConfig": {"defaults": {"unit": "s"}},
+      "gridPos": {"h": 8, "w": 16, "x": 0, "y": 14},
+      "id": 4,
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum by (le, script) (rate(homelab_apps_script_execution_duration_seconds_bucket[$__rate_interval])))",
+          "legendFormat": "{{script}} p50",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, script) (rate(homelab_apps_script_execution_duration_seconds_bucket[$__rate_interval])))",
+          "legendFormat": "{{script}} p95",
+          "refId": "B"
+        }
+      ],
+      "title": "Execution Duration p50 / p95",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "homelab-prometheus"},
+      "fieldConfig": {"defaults": {"unit": "s"}},
+      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 14},
+      "id": 5,
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}},
+      "targets": [
+        {
+          "expr": "time() - homelab_apps_script_last_success_timestamp_seconds",
+          "legendFormat": "{{script}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Last Successful Execution by Script",
+      "type": "stat"
+    }
+  ],
+  "schemaVersion": 41,
+  "tags": ["homelab", "apps-script"],
+  "templating": {"list": []},
+  "time": {"from": "now-24h", "to": "now"},
+  "title": "Homelab - Apps Script",
+  "uid": "homelab-apps-script"
+}
