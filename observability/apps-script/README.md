@@ -44,8 +44,8 @@ under `/etc/systemd/system`. The timer runs every five minutes. Metrics are atom
 the verified `/var/lib/prometheus/node-exporter` textfile directory, while compact terminal
 metadata goes to journald for the existing Alloy/Loki pipeline.
 
-Cloud forwarding is deliberately absent until the Grafana Cloud tenant endpoints, plan, and
-credentials are verified. Local collection does not depend on Grafana Cloud.
+Cloud forwarding is deliberately absent until dedicated metrics and logs write credentials and
+forwarding are configured. Local collection does not depend on Grafana Cloud.
 
 The current OAuth consent grant is in Google Testing mode. It proves the live integration but its
 refresh token is expected to expire after seven days. Publish the consent configuration or replace

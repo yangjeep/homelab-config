@@ -71,7 +71,7 @@ def write_metrics(store: Store, path: Path) -> None:
         [
             (
                 "# HELP homelab_apps_script_last_success_timestamp_seconds "
-                "Last successful script poll."
+                "Last successful execution."
             ),
             "# TYPE homelab_apps_script_last_success_timestamp_seconds gauge",
         ]
