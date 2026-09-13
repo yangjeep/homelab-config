@@ -10,8 +10,8 @@ import httpx2
 import pytest
 
 from apps_script_observer.collector import Collector, Page
-from apps_script_observer.config import RuntimeConfig
-from apps_script_observer.errors import CollectionBoundExceededError
+from apps_script_observer.config import RuntimeConfig, ScriptConfig
+from apps_script_observer.errors import ApiError, CollectionBoundExceededError
 from apps_script_observer.google_api import GoogleProcessesApi, create_client
 from apps_script_observer.metrics import write_metrics
 from apps_script_observer.store import Store
@@ -256,3 +256,55 @@ def test_pruned_history_stays_outside_incremental_fetch_window(tmp_path: Path) -
         assert store.terminal_totals() == {("gmail-cleaner", "TIME_DRIVEN", "COMPLETED"): 1}
     with sqlite3.connect(cfg.state_path) as connection:
         assert connection.execute("SELECT COUNT(*) FROM executions").fetchone()[0] == 0
+
+
+def test_partial_failures_still_prune_delivered_terminal_detail(tmp_path: Path) -> None:
+    # Given two scripts where the first commits a terminal result and the second always fails.
+    cfg = replace(
+        config(tmp_path),
+        scripts=(
+            ScriptConfig(alias="first", script_id="first-id"),
+            ScriptConfig(alias="second", script_id="second-id"),
+        ),
+        max_pending_events=1,
+    )
+    base = datetime(2026, 1, 1, tzinfo=UTC)
+
+    class PartialFailureApi:
+        def __init__(self, started: datetime) -> None:
+            self._process = process(status="COMPLETED", started=started)
+
+        def fetch_page(
+            self,
+            *,
+            script_id: str,
+            started_after: datetime,
+            page_token: str | None,
+            page_size: int,
+        ) -> Page:
+            del started_after, page_token, page_size
+            if script_id == "first-id":
+                return Page((self._process,), None)
+            raise ApiError(status_code=503)
+
+    # When partial failures recur beyond the 30-day detail retention horizon.
+    for index in range(6):
+        current = base + timedelta(days=31 * index)
+        result = Collector(
+            cfg,
+            PartialFailureApi(current - timedelta(minutes=1)),
+            now=lambda current=current: current,
+            sleep=lambda _: None,
+        ).run()
+        assert result.success is False
+
+    # Then delivered detail stays bounded while lifetime counts and one pending event remain.
+    with sqlite3.connect(cfg.state_path) as connection:
+        assert connection.execute("SELECT COUNT(*) FROM executions").fetchone()[0] == 1
+        assert connection.execute("SELECT COUNT(*) FROM outbox").fetchone()[0] == 1
+        assert (
+            connection.execute("SELECT COUNT(*) FROM outbox WHERE emitted = 0").fetchone()[0] == 1
+        )
+    with Store(cfg.state_path, max_pending_events=1) as store:
+        assert sum(store.terminal_totals().values()) == 6
+        assert store.metric_state() == (6, 0.0)

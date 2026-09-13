@@ -83,12 +83,14 @@ class Collector:
             RateLimitedError,
             ResponseTooLargeError,
         ) as error:
+            failure_time = self._now()
             with Store(
                 self._config.state_path,
                 max_pending_events=self._config.max_pending_events,
             ) as store:
                 store.record_failure()
-                write_metrics(store, self._config.metrics_path, now=self._now())
+                store.prune_terminal_detail(failure_time - self._config.detail_retention)
+                write_metrics(store, self._config.metrics_path, now=failure_time)
             sys.stderr.write(
                 json.dumps(
                     {
