@@ -30,6 +30,8 @@ Privacy Mode is OFF under the user's explicit override. OpenRouter's separate In
 
 This path queries existing analytics rather than ingesting full access logs. CPU quantiles are CPU time, not request wall duration. Free website zones do not satisfy the official zone integration's Pro-or-better prerequisite; that does not prevent the separate Workers Analytics path.
 
+`leaselab-production-dashboard.json` is the production entry point. It filters the same real Workers query to production and links to the three existing Vercel project views. It explicitly marks Vercel telemetry as unavailable until its dedicated credential and native datasource are connected; it does not present static deployment facts as live health.
+
 ## Verification and lifecycle
 
 `business-alert-rules.json` contains three native warning rules: at least three root OpenRouter errors in 15 minutes, Hermes estimated spend above USD 0.25 in one hour, and at least five production Worker errors in 15 minutes, each sustained for five minutes. These are explicit initial operational thresholds, not learned baselines. Idle/no-data windows remain OK; datasource failures remain Error. Apps Script rules live in the adjacent collector directory. Contact points and severity routing belong to the separate Hermes integration.
