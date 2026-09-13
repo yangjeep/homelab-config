@@ -1,16 +1,37 @@
 {
-  "annotations": {"list": []},
+  "annotations": {
+    "list": []
+  },
   "editable": true,
   "panels": [
     {
-      "datasource": {"type": "prometheus", "uid": "homelab-prometheus"},
-      "fieldConfig": {"defaults": {"unit": "s"}},
-      "gridPos": {"h": 6, "w": 8, "x": 0, "y": 0},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "homelab-prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
       "id": 1,
-      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}},
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
       "targets": [
         {
           "expr": "time() - homelab_apps_script_collector_last_success_timestamp_seconds",
+          "instant": true,
           "refId": "A"
         }
       ],
@@ -18,20 +39,181 @@
       "type": "stat"
     },
     {
-      "datasource": {"type": "prometheus", "uid": "homelab-prometheus"},
-      "fieldConfig": {"defaults": {}},
-      "gridPos": {"h": 6, "w": 8, "x": 8, "y": 0},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "homelab-prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {}
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 6,
+        "y": 0
+      },
       "id": 2,
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
       "targets": [
-        {"expr": "increase(homelab_apps_script_collector_failures_total[24h])", "refId": "A"}
+        {
+          "expr": "increase(homelab_apps_script_collector_failures_total[24h])",
+          "instant": true,
+          "refId": "A"
+        }
       ],
       "title": "Collector Failures (24h)",
       "type": "stat"
     },
     {
-      "datasource": {"type": "prometheus", "uid": "homelab-prometheus"},
-      "fieldConfig": {"defaults": {}},
-      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 6},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "homelab-prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {}
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 10,
+        "y": 0
+      },
+      "id": 6,
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(homelab_apps_script_executions_last_24h) or vector(0)",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Executions (24h)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "homelab-prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit"
+        }
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 14,
+        "y": 0
+      },
+      "id": 7,
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "expr": "100 * (sum(homelab_apps_script_executions_last_24h{status=\"COMPLETED\"}) or vector(0)) / clamp_min((sum(homelab_apps_script_executions_last_24h) or vector(0)), 1)",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Success Rate (24h)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "homelab-prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {}
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 3,
+        "x": 18,
+        "y": 0
+      },
+      "id": 8,
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(homelab_apps_script_executions_last_24h{status=\"FAILED\"}) or vector(0)",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Failures (24h)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "homelab-prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {}
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 3,
+        "x": 21,
+        "y": 0
+      },
+      "id": 9,
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(homelab_apps_script_executions_last_24h{status=\"TIMED_OUT\"}) or vector(0)",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Timeouts (24h)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "homelab-prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {}
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 5
+      },
       "id": 3,
       "targets": [
         {
@@ -40,13 +222,101 @@
           "refId": "A"
         }
       ],
-      "title": "Terminal Executions",
+      "title": "Execution Trend by Status",
       "type": "timeseries"
     },
     {
-      "datasource": {"type": "prometheus", "uid": "homelab-prometheus"},
-      "fieldConfig": {"defaults": {"unit": "s"}},
-      "gridPos": {"h": 8, "w": 16, "x": 0, "y": 14},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "homelab-prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {}
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 5
+      },
+      "id": 10,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right"
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (type) (homelab_apps_script_executions_last_24h)",
+          "instant": true,
+          "legendFormat": "{{type}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Execution Type Breakdown (24h)",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "homelab-prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 5
+      },
+      "id": 11,
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "expr": "topk(5, homelab_apps_script_max_duration_seconds_last_24h)",
+          "instant": true,
+          "legendFormat": "{{script}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Slowest Scripts (24h max)",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "homelab-prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 16,
+        "x": 0,
+        "y": 13
+      },
       "id": 4,
       "targets": [
         {
@@ -60,15 +330,33 @@
           "refId": "B"
         }
       ],
-      "title": "Execution Duration p50 / p95",
+      "title": "Execution Duration p50 / p95 (retained)",
       "type": "timeseries"
     },
     {
-      "datasource": {"type": "prometheus", "uid": "homelab-prometheus"},
-      "fieldConfig": {"defaults": {"unit": "s"}},
-      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 14},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "homelab-prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 13
+      },
       "id": 5,
-      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}},
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
       "targets": [
         {
           "expr": "time() - homelab_apps_script_last_success_timestamp_seconds",
@@ -78,12 +366,102 @@
       ],
       "title": "Last Successful Execution by Script",
       "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "homelab-loki"
+      },
+      "fieldConfig": {
+        "defaults": {}
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 21
+      },
+      "id": 12,
+      "options": {
+        "enableLogDetails": true,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "homelab-loki"
+          },
+          "editorMode": "code",
+          "expr": "{unit=\"apps-script-observer.service\"} | json | event=\"apps_script.execution_terminal\" | line_format \"{{.start_time}} script={{.script}} function={{.function}} status={{.status}} type={{.type}} duration={{.duration_seconds}}s\"",
+          "instant": false,
+          "maxLines": 100,
+          "queryType": "range",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Recent Executions",
+      "type": "logs"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "homelab-loki"
+      },
+      "fieldConfig": {
+        "defaults": {}
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 21
+      },
+      "id": 13,
+      "options": {
+        "enableLogDetails": true,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "homelab-loki"
+          },
+          "editorMode": "code",
+          "expr": "{unit=\"apps-script-observer.service\"} | json | event=\"apps_script.execution_terminal\" | status=~\"FAILED|TIMED_OUT|CANCELED\" | line_format \"{{.start_time}} script={{.script}} function={{.function}} status={{.status}} type={{.type}} duration={{.duration_seconds}}s\"",
+          "instant": false,
+          "maxLines": 100,
+          "queryType": "range",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Recent Failures / Timeouts",
+      "type": "logs"
     }
   ],
   "schemaVersion": 41,
-  "tags": ["homelab", "apps-script"],
-  "templating": {"list": []},
-  "time": {"from": "now-24h", "to": "now"},
+  "tags": [
+    "homelab",
+    "apps-script"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
   "title": "Homelab - Apps Script",
   "uid": "homelab-apps-script"
 }

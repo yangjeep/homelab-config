@@ -206,6 +206,15 @@ class Store(AbstractContextManager["Store"]):
             "FROM executions WHERE terminal_counted = 1"
         )
 
+    def terminal_observations_since(
+        self, cutoff: datetime
+    ) -> Iterator[tuple[str, str, str, float | None]]:
+        yield from self._connection.execute(
+            "SELECT script_alias, process_type, process_status, duration_seconds "
+            "FROM executions WHERE terminal_counted = 1 AND start_time >= ?",
+            (cutoff.astimezone(UTC).isoformat(),),
+        )
+
     def pending_events(self) -> Iterator[tuple[str, str, str, str, str, str, float | None]]:
         yield from self._connection.execute(
             """SELECT execution_key, script_alias, function_name, process_type,

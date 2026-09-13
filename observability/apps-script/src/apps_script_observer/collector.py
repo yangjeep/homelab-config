@@ -65,8 +65,9 @@ class Collector:
                     processes = self._fetch_all(store, script, query_time)
                     store.apply_batch(script.alias, processes, query_time)
                     records += len(processes)
-                store.mark_global_success(self._now())
-                write_metrics(store, self._config.metrics_path)
+                completed_at = self._now()
+                store.mark_global_success(completed_at)
+                write_metrics(store, self._config.metrics_path, now=completed_at)
                 self._emit_pending(store)
         except (
             ApiError,
@@ -76,7 +77,7 @@ class Collector:
         ) as error:
             with Store(self._config.state_path) as store:
                 store.record_failure()
-                write_metrics(store, self._config.metrics_path)
+                write_metrics(store, self._config.metrics_path, now=self._now())
             sys.stderr.write(
                 json.dumps(
                     {

@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import tempfile
 from collections import defaultdict
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from .store import Store
@@ -14,7 +15,8 @@ _ALLOWED_STATUSES = frozenset({"COMPLETED", "CANCELED", "FAILED", "TIMED_OUT"})
 _DURATION_BUCKETS = (0.1, 1.0, 5.0, 10.0, 30.0, 60.0, 300.0, 900.0, 3600.0)
 
 
-def write_metrics(store: Store, path: Path) -> None:
+def write_metrics(store: Store, path: Path, *, now: datetime | None = None) -> None:
+    metric_time = now or datetime.now(tz=UTC)
     failures, last_success = store.metric_state()
     lines = [
         "# HELP homelab_apps_script_collector_failures_total Failed collection runs.",
@@ -43,6 +45,7 @@ def write_metrics(store: Store, path: Path) -> None:
             "homelab_apps_script_executions_terminal_total"
             f'{{script="{alias}",type="{safe_type}",status="{safe_status}"}} {count}'
         )
+    _append_recent_metrics(lines, store, metric_time)
     lines.extend(
         [
             "# HELP homelab_apps_script_execution_duration_seconds Terminal execution duration.",
@@ -93,3 +96,43 @@ def write_metrics(store: Store, path: Path) -> None:
         temporary.replace(path)
     finally:
         temporary.unlink(missing_ok=True)
+
+
+def _append_recent_metrics(lines: list[str], store: Store, metric_time: datetime) -> None:
+    recent_counts: dict[tuple[str, str, str], int] = defaultdict(int)
+    recent_max_duration: dict[str, float] = {}
+    for alias, process_type, status, duration in store.terminal_observations_since(
+        metric_time - timedelta(hours=24)
+    ):
+        safe_type = process_type if process_type in _ALLOWED_TYPES else "OTHER"
+        safe_status = status if status in _ALLOWED_STATUSES else "OTHER"
+        recent_counts[(alias, safe_type, safe_status)] += 1
+        if duration is not None:
+            recent_max_duration[alias] = max(duration, recent_max_duration.get(alias, duration))
+    lines.extend(
+        [
+            (
+                "# HELP homelab_apps_script_executions_last_24h "
+                "Terminal executions started in the last 24 hours."
+            ),
+            "# TYPE homelab_apps_script_executions_last_24h gauge",
+        ]
+    )
+    for (alias, safe_type, safe_status), count in sorted(recent_counts.items()):
+        lines.append(
+            "homelab_apps_script_executions_last_24h"
+            f'{{script="{alias}",type="{safe_type}",status="{safe_status}"}} {count}'
+        )
+    lines.extend(
+        [
+            (
+                "# HELP homelab_apps_script_max_duration_seconds_last_24h "
+                "Longest execution started in the last 24 hours."
+            ),
+            "# TYPE homelab_apps_script_max_duration_seconds_last_24h gauge",
+        ]
+    )
+    for alias, duration in sorted(recent_max_duration.items()):
+        lines.append(
+            f'homelab_apps_script_max_duration_seconds_last_24h{{script="{alias}"}} {duration:.6f}'
+        )

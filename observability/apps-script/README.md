@@ -31,10 +31,11 @@ directory must be readable only by the service account. Copy the environment exa
 0600. Script IDs never appear in metrics or logs; metrics use the stable configured alias.
 
 No alert SLA is assumed for Gmail Cleaner. The included dashboard shows collector freshness,
-collection failures, terminal execution counts, bounded-histogram p50 and p95 durations, and each
-script's most recent successfully completed execution. Failed polls or failed executions never
-advance that execution-success timestamp. Alert thresholds should be chosen after an actual
-execution baseline exists.
+24-hour executions, success rate, failures, timeouts, execution types, the slowest scripts,
+bounded-histogram p50 and p95 durations, recent execution metadata, and each script's most recent
+successfully completed execution. Failed polls or failed executions never advance that
+execution-success timestamp. Alert thresholds should be chosen after an actual execution baseline
+exists.
 
 ## Runtime layout
 
@@ -44,8 +45,10 @@ under `/etc/systemd/system`. The timer runs every five minutes. Metrics are atom
 the verified `/var/lib/prometheus/node-exporter` textfile directory, while compact terminal
 metadata goes to journald for the existing Alloy/Loki pipeline.
 
-Cloud forwarding is deliberately absent until dedicated metrics and logs write credentials and
-forwarding are configured. Local collection does not depend on Grafana Cloud.
+The Alloy snippet selectively forwards only `homelab_apps_script_*` metrics and compact terminal
+execution journal events to Grafana Cloud. It uses a dedicated private token file at
+`/etc/alloy/grafana-cloud-write-token`; all other node-exporter metrics and journal events are
+dropped before the Cloud writers. Local collection does not depend on Grafana Cloud.
 
 The current OAuth consent grant is in Google Testing mode. It proves the live integration but its
 refresh token is expected to expire after seven days. Publish the consent configuration or replace
@@ -57,11 +60,11 @@ long-term coverage; until then, alert on collector freshness rather than assumin
 Run the local suite with:
 
 ```sh
-uv sync --all-groups
+uv sync --locked
 uv run ruff format --check .
 uv run ruff check .
 uv run basedpyright
-uv run pytest
+PYTHONPATH=src uv run pytest
 ```
 
 After private OAuth authorization is complete, a deployment is accepted only after a real API run

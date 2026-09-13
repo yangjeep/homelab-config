@@ -188,3 +188,56 @@ def test_failed_execution_does_not_create_success_timestamp(tmp_path: Path) -> N
     )
     assert float(collector_line.split()[1]) > 0
     assert 'homelab_apps_script_last_success_timestamp_seconds{script="' not in metrics
+
+
+def test_rolling_metrics_include_only_executions_started_within_24_hours(
+    tmp_path: Path,
+) -> None:
+    # Given terminal executions on both sides of the rolling 24-hour boundary.
+    now = datetime(2026, 9, 13, 12, tzinfo=UTC)
+    recent_success = process(status="COMPLETED", started=now - timedelta(hours=23), duration="12s")
+    recent_failure = Process.model_validate(
+        {
+            "functionName": "runCleanup",
+            "processType": "TIME_DRIVEN",
+            "processStatus": "FAILED",
+            "startTime": (now - timedelta(hours=1)).isoformat(),
+            "duration": "42s",
+        }
+    )
+    old_timeout = Process.model_validate(
+        {
+            "functionName": "runCleanup",
+            "processType": "TIME_DRIVEN",
+            "processStatus": "TIMED_OUT",
+            "startTime": (now - timedelta(hours=25)).isoformat(),
+            "duration": "120s",
+        }
+    )
+    cfg = config(tmp_path)
+
+    # When the collector renders its rolling gauges.
+    Collector(
+        cfg,
+        FakeApi({None: Page((recent_success, recent_failure, old_timeout), None)}),
+        now=lambda: now,
+        sleep=lambda _: None,
+    ).run()
+    metrics = cfg.metrics_path.read_text()
+
+    # Then recent status counts and the maximum exclude the older execution.
+    assert (
+        'homelab_apps_script_executions_last_24h{script="gmail-cleaner",'
+        'type="TIME_DRIVEN",status="COMPLETED"} 1'
+    ) in metrics
+    assert (
+        'homelab_apps_script_executions_last_24h{script="gmail-cleaner",'
+        'type="TIME_DRIVEN",status="FAILED"} 1'
+    ) in metrics
+    assert (
+        'homelab_apps_script_executions_last_24h{script="gmail-cleaner",'
+        'type="TIME_DRIVEN",status="TIMED_OUT"}' not in metrics
+    )
+    assert (
+        'homelab_apps_script_max_duration_seconds_last_24h{script="gmail-cleaner"} 42.000000'
+    ) in metrics
