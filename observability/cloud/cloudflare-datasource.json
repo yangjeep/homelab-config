@@ -1,0 +1,15 @@
+{
+  "uid": "leaselab-cloudflare",
+  "name": "LeaseLab Cloudflare Workers",
+  "type": "yesoreyeram-infinity-datasource",
+  "access": "proxy",
+  "isDefault": false,
+  "jsonData": {
+    "auth_method": "bearerToken",
+    "allowedHosts": [
+      "https://api.cloudflare.com"
+    ],
+    "timeout": 15,
+    "global_queries": []
+  }
+}

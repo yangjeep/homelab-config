@@ -1,0 +1,25 @@
+query Workers($account: string!, $start: string!, $end: string!) {
+  viewer {
+    accounts(filter: {accountTag: $account}) {
+      workersInvocationsAdaptive(
+        limit: 500
+        filter: {
+          datetime_geq: $start
+          datetime_leq: $end
+          scriptName_in: [
+            "leaselab-worker"
+            "leaselab-worker-preview"
+            "leaselab-workflows"
+            "leaselab-workflows-preview"
+            "leaselab-email-worker"
+            "leaselab-email-worker-preview"
+          ]
+        }
+      ) {
+        sum { requests errors subrequests }
+        quantiles { cpuTimeP50 cpuTimeP99 }
+        dimensions { scriptName status }
+      }
+    }
+  }
+}
