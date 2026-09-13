@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -24,11 +23,11 @@ def process(*, status: str, started: datetime, duration: str = "1.5s") -> Proces
     )
 
 
-@dataclass
 class FakeApi:
-    pages: dict[str | None, Page | RateLimited]
-    calls: list[str | None] = field(default_factory=list)
-    started_after_calls: list[datetime] = field(default_factory=list)
+    def __init__(self, pages: dict[str | None, Page | RateLimited]) -> None:
+        self.pages = pages
+        self.calls: list[str | None] = []
+        self.started_after_calls: list[datetime] = []
 
     def fetch_page(
         self,

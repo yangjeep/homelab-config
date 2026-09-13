@@ -4,18 +4,30 @@ This collector reads execution metadata from the official Apps Script Processes 
 `https://www.googleapis.com/auth/script.processes` scope. It never reads parameters, source,
 document content, or user data.
 
-Each run requests at most 20 pages and 1,000 records, uses a seven-day initial lookback, and then
+The OAuth bearer is sent only to the fixed official
+`https://script.googleapis.com/v1/processes:listScriptProcesses` endpoint; the production runtime
+does not accept an API URL override. Each run requests at most 20 pages and 1,000 records, uses a
+seven-day initial lookback, and then
 re-reads a 10-minute overlap. Pending executions extend that window back to their start time for at
 most seven days, preventing a long run from disappearing behind a newer cursor while keeping state
 bounded. A script's cursor advances to the request time only after every requested page has been
 validated. The global success timestamp advances only after all scripts succeed. HTTP responses
 are capped at 2 MiB, 429 responses are retried twice, and Retry-After is capped at 10 seconds.
 
-SQLite stores the cursor, the latest state for each observed execution, counters, and an event
-outbox. An execution key is the SHA-256 of the configured script alias, function name, process
-type, and start time. Google does not return a process ID or script ID in each Process object, so
-two executions with all four fields equal are indistinguishable. The timestamp normally has
-sub-second precision, which makes this collision unlikely but not impossible.
+SQLite keeps execution detail for 30 days, which is longer than the seven-day API lookback and the
+24-hour dashboard window. A transactional migration converts existing terminal rows into
+fixed-cardinality lifetime aggregates before eligible detail is pruned. Lifetime execution counts,
+duration sums/counts, histogram buckets, and per-script last-success timestamps therefore remain
+monotonic without rescanning retained history. Delivered outbox rows and their terminal detail are
+pruned together; undelivered rows are retained. At most 1,000 outbox events are emitted per run, and
+new terminal batches are rolled back with collection backpressure when the pending outbox is full,
+rather than silently dropping journal events. Persistent stdout/journald failure can retain up to
+that cap and pause new terminal ingestion until delivery resumes.
+
+An execution key is the SHA-256 of the configured script alias, function name, process type, and
+start time. Google does not return a process ID or script ID in each Process object, so two
+executions with all four fields equal are indistinguishable. The timestamp normally has sub-second
+precision, which makes this collision unlikely but not impossible.
 
 Only a terminal transition increments execution counters. A RUNNING execution can therefore be
 re-read and later counted once as COMPLETED or FAILED. Journal events use the same execution key

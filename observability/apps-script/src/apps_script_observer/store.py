@@ -8,15 +8,26 @@ from datetime import UTC, datetime
 from pathlib import Path
 from types import TracebackType
 
-from .models import CompletedExecution, ExecutionKey, Process, StoredExecution
+from .aggregates import (
+    LifetimeAggregate,
+    LifetimeObservation,
+    increment,
+    initialize,
+    lifetime_rows,
+    successful_times,
+)
+from .errors import CollectionBoundExceededError
+from .models import ExecutionKey, Process, StoredExecution
 
 _TERMINAL = frozenset({"COMPLETED", "CANCELED", "FAILED", "TIMED_OUT"})
+_PENDING_EVENTS_BOUND = "pending_events"
 
 
 class Store(AbstractContextManager["Store"]):
-    def __init__(self, path: Path) -> None:
+    def __init__(self, path: Path, *, max_pending_events: int = 1_000) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         self._connection = sqlite3.connect(path)
+        self._max_pending_events = max_pending_events
         self._connection.execute("PRAGMA journal_mode=WAL")
         self._connection.executescript(
             """
@@ -51,6 +62,7 @@ class Store(AbstractContextManager["Store"]):
             INSERT OR IGNORE INTO collector_state(singleton) VALUES (1);
             """
         )
+        initialize(self._connection)
 
     def __exit__(
         self,
@@ -94,6 +106,12 @@ class Store(AbstractContextManager["Store"]):
         )
         counted = existing is not None and existing.terminal_counted
         terminal = process.process_status in _TERMINAL
+        if terminal and not counted:
+            pending_count = self._connection.execute(
+                "SELECT COUNT(*) FROM outbox WHERE emitted = 0"
+            ).fetchone()[0]
+            if int(pending_count) >= self._max_pending_events:
+                raise CollectionBoundExceededError(_PENDING_EVENTS_BOUND, self._max_pending_events)
         status = existing.status if counted and existing is not None else process.process_status
         duration = (
             existing.duration_seconds
@@ -129,6 +147,16 @@ class Store(AbstractContextManager["Store"]):
                     duration,
                 ),
             )
+            increment(
+                self._connection,
+                LifetimeObservation(
+                    script_alias=alias,
+                    process_type=process.process_type,
+                    process_status=process.process_status,
+                    start_time=process.start_time,
+                    duration_seconds=duration,
+                ),
+            )
 
     def record_failure(self) -> None:
         with self._connection:
@@ -160,19 +188,19 @@ class Store(AbstractContextManager["Store"]):
             )
 
     def terminal_totals(self) -> dict[tuple[str, str, str], int]:
-        rows = self._connection.execute(
-            """SELECT script_alias, process_type, process_status, COUNT(*)
-            FROM executions WHERE terminal_counted = 1 GROUP BY 1, 2, 3"""
-        )
-        return {(row[0], row[1], row[2]): row[3] for row in rows}
+        return {
+            (row.script_alias, row.process_type, row.process_status): row.executions_count
+            for row in lifetime_rows(self._connection)
+        }
 
     def duration_totals(self) -> dict[tuple[str, str, str], tuple[float, int]]:
-        rows = self._connection.execute(
-            """SELECT script_alias, process_type, process_status,
-            COALESCE(SUM(duration_seconds), 0), COUNT(duration_seconds)
-            FROM executions WHERE terminal_counted = 1 GROUP BY 1, 2, 3"""
-        )
-        return {(row[0], row[1], row[2]): (float(row[3]), int(row[4])) for row in rows}
+        return {
+            (row.script_alias, row.process_type, row.process_status): (
+                row.duration_sum,
+                row.duration_count,
+            )
+            for row in lifetime_rows(self._connection)
+        }
 
     def metric_state(self) -> tuple[int, float]:
         row = self._connection.execute(
@@ -181,30 +209,10 @@ class Store(AbstractContextManager["Store"]):
         return int(row[0]), float(row[1])
 
     def successful_execution_times(self) -> dict[str, float]:
-        rows = self._connection.execute(
-            "SELECT script_alias, start_time, duration_seconds FROM executions "
-            "WHERE terminal_counted = 1 AND process_status = 'COMPLETED'"
-        )
-        latest: dict[str, float] = {}
-        for row in rows:
-            execution = CompletedExecution.model_validate(
-                {
-                    "script_alias": row[0],
-                    "start_time": row[1],
-                    "duration_seconds": row[2],
-                }
-            )
-            completed = execution.start_time.timestamp() + (execution.duration_seconds or 0.0)
-            latest[execution.script_alias] = max(
-                completed, latest.get(execution.script_alias, completed)
-            )
-        return latest
+        return successful_times(self._connection)
 
-    def terminal_observations(self) -> Iterator[tuple[str, str, str, float | None]]:
-        yield from self._connection.execute(
-            "SELECT script_alias, process_type, process_status, duration_seconds "
-            "FROM executions WHERE terminal_counted = 1"
-        )
+    def lifetime_aggregates(self) -> Iterator[LifetimeAggregate]:
+        yield from lifetime_rows(self._connection)
 
     def terminal_observations_since(
         self, cutoff: datetime
@@ -215,16 +223,37 @@ class Store(AbstractContextManager["Store"]):
             (cutoff.astimezone(UTC).isoformat(),),
         )
 
-    def pending_events(self) -> Iterator[tuple[str, str, str, str, str, str, float | None]]:
+    def pending_events(
+        self, limit: int | None = None
+    ) -> Iterator[tuple[str, str, str, str, str, str, float | None]]:
+        effective_limit = self._max_pending_events if limit is None else limit
         yield from self._connection.execute(
             """SELECT execution_key, script_alias, function_name, process_type,
-            process_status, start_time, duration_seconds FROM outbox WHERE emitted = 0"""
+            process_status, start_time, duration_seconds FROM outbox WHERE emitted = 0
+            ORDER BY start_time LIMIT ?""",
+            (effective_limit,),
         )
 
     def mark_emitted(self, execution_key: str) -> None:
         with self._connection:
             self._connection.execute(
                 "UPDATE outbox SET emitted = 1 WHERE execution_key = ?", (execution_key,)
+            )
+
+    def prune_terminal_detail(self, cutoff: datetime) -> None:
+        cutoff_text = cutoff.astimezone(UTC).isoformat()
+        with self._connection:
+            self._connection.execute(
+                """DELETE FROM executions WHERE terminal_counted = 1 AND start_time < ?
+                AND NOT EXISTS (
+                  SELECT 1 FROM outbox
+                  WHERE outbox.execution_key = executions.execution_key AND emitted = 0
+                )""",
+                (cutoff_text,),
+            )
+            self._connection.execute(
+                "DELETE FROM outbox WHERE emitted = 1 AND start_time < ?",
+                (cutoff_text,),
             )
 
 

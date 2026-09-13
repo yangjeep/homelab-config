@@ -6,13 +6,8 @@ from collections import defaultdict
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+from .aggregates import ALLOWED_STATUSES, ALLOWED_TYPES, DURATION_BUCKETS
 from .store import Store
-
-_ALLOWED_TYPES = frozenset(
-    {"ADD_ON", "EXECUTION_API", "TIME_DRIVEN", "TRIGGER", "WEBAPP", "EDITOR"}
-)
-_ALLOWED_STATUSES = frozenset({"COMPLETED", "CANCELED", "FAILED", "TIMED_OUT"})
-_DURATION_BUCKETS = (0.1, 1.0, 5.0, 10.0, 30.0, 60.0, 300.0, 900.0, 3600.0)
 
 
 def write_metrics(store: Store, path: Path, *, now: datetime | None = None) -> None:
@@ -31,20 +26,15 @@ def write_metrics(store: Store, path: Path, *, now: datetime | None = None) -> N
         "# HELP homelab_apps_script_executions_terminal_total Terminal executions observed.",
         "# TYPE homelab_apps_script_executions_terminal_total counter",
     ]
-    observations: dict[tuple[str, str, str], list[float]] = defaultdict(list)
-    counts: dict[tuple[str, str, str], int] = defaultdict(int)
-    for alias, process_type, status, duration in store.terminal_observations():
-        safe_type = process_type if process_type in _ALLOWED_TYPES else "OTHER"
-        safe_status = status if status in _ALLOWED_STATUSES else "OTHER"
-        key = (alias, safe_type, safe_status)
-        counts[key] += 1
-        if duration is not None:
-            observations[key].append(duration)
-    for (alias, safe_type, safe_status), count in sorted(counts.items()):
-        lines.append(
+    lifetime = tuple(store.lifetime_aggregates())
+    lines.extend(
+        (
             "homelab_apps_script_executions_terminal_total"
-            f'{{script="{alias}",type="{safe_type}",status="{safe_status}"}} {count}'
+            f'{{script="{aggregate.script_alias}",type="{aggregate.process_type}",'
+            f'status="{aggregate.process_status}"}} {aggregate.executions_count}'
         )
+        for aggregate in lifetime
+    )
     _append_recent_metrics(lines, store, metric_time)
     lines.extend(
         [
@@ -52,23 +42,29 @@ def write_metrics(store: Store, path: Path, *, now: datetime | None = None) -> N
             "# TYPE homelab_apps_script_execution_duration_seconds histogram",
         ]
     )
-    for (alias, safe_type, safe_status), durations in sorted(observations.items()):
-        labels = f'script="{alias}",type="{safe_type}",status="{safe_status}"'
-        for bucket in _DURATION_BUCKETS:
-            cumulative = sum(duration <= bucket for duration in durations)
+    for aggregate in lifetime:
+        if aggregate.duration_count == 0:
+            continue
+        labels = (
+            f'script="{aggregate.script_alias}",type="{aggregate.process_type}",'
+            f'status="{aggregate.process_status}"'
+        )
+        for bucket, cumulative in zip(DURATION_BUCKETS, aggregate.bucket_counts, strict=True):
             lines.append(
                 "homelab_apps_script_execution_duration_seconds_bucket"
                 f'{{{labels},le="{bucket:g}"}} {cumulative}'
             )
         lines.append(
             "homelab_apps_script_execution_duration_seconds_bucket"
-            f'{{{labels},le="+Inf"}} {len(durations)}'
+            f'{{{labels},le="+Inf"}} {aggregate.duration_count}'
         )
         lines.append(
-            f"homelab_apps_script_execution_duration_seconds_sum{{{labels}}} {sum(durations):.6f}"
+            "homelab_apps_script_execution_duration_seconds_sum"
+            f"{{{labels}}} {aggregate.duration_sum:.6f}"
         )
         lines.append(
-            f"homelab_apps_script_execution_duration_seconds_count{{{labels}}} {len(durations)}"
+            "homelab_apps_script_execution_duration_seconds_count"
+            f"{{{labels}}} {aggregate.duration_count}"
         )
     lines.extend(
         [
@@ -104,8 +100,8 @@ def _append_recent_metrics(lines: list[str], store: Store, metric_time: datetime
     for alias, process_type, status, duration in store.terminal_observations_since(
         metric_time - timedelta(hours=24)
     ):
-        safe_type = process_type if process_type in _ALLOWED_TYPES else "OTHER"
-        safe_status = status if status in _ALLOWED_STATUSES else "OTHER"
+        safe_type = process_type if process_type in ALLOWED_TYPES else "OTHER"
+        safe_status = status if status in ALLOWED_STATUSES else "OTHER"
         recent_counts[(alias, safe_type, safe_status)] += 1
         if duration is not None:
             recent_max_duration[alias] = max(duration, recent_max_duration.get(alias, duration))

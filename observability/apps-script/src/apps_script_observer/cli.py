@@ -39,11 +39,7 @@ def run() -> int:
             client_secret=client_document.client_secret.get_secret_value(),
             refresh_token=token_file.refresh_token.get_secret_value(),
         )
-        api = GoogleProcessesApi(
-            client=client,
-            access_token=access_token,
-            api_url=runtime.apps_script_api_url,
-        )
+        api = GoogleProcessesApi(client=client, access_token=access_token)
         result = Collector(
             runtime.collector_config(),
             api,

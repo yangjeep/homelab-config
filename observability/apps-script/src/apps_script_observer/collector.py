@@ -59,7 +59,11 @@ class Collector:
     def run(self) -> CollectionResult:
         records = 0
         try:
-            with Store(self._config.state_path) as store:
+            with Store(
+                self._config.state_path,
+                max_pending_events=self._config.max_pending_events,
+            ) as store:
+                emitted = self._emit_pending(store, self._config.max_pending_events)
                 for script in self._config.scripts:
                     query_time = self._now()
                     processes = self._fetch_all(store, script, query_time)
@@ -68,14 +72,21 @@ class Collector:
                 completed_at = self._now()
                 store.mark_global_success(completed_at)
                 write_metrics(store, self._config.metrics_path, now=completed_at)
-                self._emit_pending(store)
+                self._emit_pending(
+                    store,
+                    self._config.max_pending_events - emitted,
+                )
+                store.prune_terminal_detail(completed_at - self._config.detail_retention)
         except (
             ApiError,
             CollectionBoundExceededError,
             RateLimitedError,
             ResponseTooLargeError,
         ) as error:
-            with Store(self._config.state_path) as store:
+            with Store(
+                self._config.state_path,
+                max_pending_events=self._config.max_pending_events,
+            ) as store:
                 store.record_failure()
                 write_metrics(store, self._config.metrics_path, now=self._now())
             sys.stderr.write(
@@ -139,7 +150,8 @@ class Collector:
         raise AssertionError
 
     @staticmethod
-    def _emit_pending(store: Store) -> None:
+    def _emit_pending(store: Store, limit: int) -> int:
+        emitted = 0
         for (
             key,
             alias,
@@ -148,7 +160,7 @@ class Collector:
             status,
             start_time,
             duration,
-        ) in store.pending_events():
+        ) in store.pending_events(limit):
             sys.stdout.write(
                 json.dumps(
                     {
@@ -168,6 +180,8 @@ class Collector:
             )
             sys.stdout.flush()
             store.mark_emitted(key)
+            emitted += 1
+        return emitted
 
 
 RateLimited = RateLimitedError

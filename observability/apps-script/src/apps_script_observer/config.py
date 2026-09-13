@@ -27,6 +27,8 @@ class CollectorConfig:
     max_rate_limit_retries: int
     max_retry_after: timedelta
     pending_retention: timedelta = timedelta(days=7)
+    detail_retention: timedelta = timedelta(days=30)
+    max_pending_events: int = 1_000
 
 
 class RuntimeConfig(BaseModel):
@@ -35,7 +37,6 @@ class RuntimeConfig(BaseModel):
     google_oauth_client_config: Path
     google_oauth_refresh_token_file: Path
     apps_script_scripts: str = Field(min_length=3)
-    apps_script_api_url: str = "https://script.googleapis.com/v1/processes:listScriptProcesses"
     apps_script_state_path: Path = Path("/var/lib/apps-script-observer/state.sqlite3")
     apps_script_metrics_path: Path = Path("/var/lib/prometheus/node-exporter/apps_script.prom")
 
@@ -53,6 +54,8 @@ class RuntimeConfig(BaseModel):
             max_rate_limit_retries=2,
             max_retry_after=timedelta(seconds=10),
             pending_retention=timedelta(days=7),
+            detail_retention=timedelta(days=30),
+            max_pending_events=1_000,
         )
 
 

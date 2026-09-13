@@ -18,12 +18,9 @@ _HTTP_RATE_LIMITED: Final = 429
 
 
 class GoogleProcessesApi:
-    def __init__(
-        self, *, client: httpx2.Client, access_token: str, api_url: str = _API_URL
-    ) -> None:
+    def __init__(self, *, client: httpx2.Client, access_token: str) -> None:
         self._client = client
         self._access_token = access_token
-        self._api_url = api_url
 
     def fetch_page(
         self,
@@ -43,7 +40,7 @@ class GoogleProcessesApi:
         try:
             with self._client.stream(
                 "GET",
-                self._api_url,
+                _API_URL,
                 params=params,
                 headers={"Authorization": f"Bearer {self._access_token}"},
             ) as response:
@@ -74,7 +71,7 @@ def create_client() -> httpx2.Client:
         limits=limits,
         socket_options=[(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)],
     )
-    return httpx2.Client(transport=transport, timeout=timeout, follow_redirects=True)
+    return httpx2.Client(transport=transport, timeout=timeout, follow_redirects=False)
 
 
 def refresh_access_token(
