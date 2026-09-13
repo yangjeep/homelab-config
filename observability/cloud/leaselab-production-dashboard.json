@@ -1,0 +1,202 @@
+{
+  "uid": "leaselab-production",
+  "title": "LeaseLab / Production",
+  "schemaVersion": 40,
+  "version": 1,
+  "tags": [
+    "leaselab",
+    "cloudflare"
+  ],
+  "timezone": "browser",
+  "refresh": "5m",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "editable": true,
+  "description": "Production observability entry point. Cloudflare production Workers use live native analytics. Vercel deployment telemetry is not yet connected; native project links remain available.",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Production Worker requests, errors and CPU",
+      "type": "table",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 12
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "leaselab-cloudflare"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare"
+          },
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "jq-backend",
+          "url": "https://api.cloudflare.com/client/v4/graphql",
+          "url_options": {
+            "method": "POST",
+            "body_type": "raw",
+            "body_content_type": "application/json",
+            "data": "{\"query\":\"query Workers($account: string!, $start: string!, $end: string!) {\\n  viewer {\\n    accounts(filter: {accountTag: $account}) {\\n      workersInvocationsAdaptive(\\n        limit: 500\\n        filter: {\\n          datetime_geq: $start\\n          datetime_leq: $end\\n          scriptName_in: [\\n            \\\"leaselab-worker\\\"\\n            \\\"leaselab-worker-preview\\\"\\n            \\\"leaselab-workflows\\\"\\n            \\\"leaselab-workflows-preview\\\"\\n            \\\"leaselab-email-worker\\\"\\n            \\\"leaselab-email-worker-preview\\\"\\n          ]\\n        }\\n      ) {\\n        sum { requests errors subrequests }\\n        quantiles { cpuTimeP50 cpuTimeP99 }\\n        dimensions { scriptName status }\\n      }\\n    }\\n  }\\n}\\n\",\"variables\":{\"account\":\"280e7379fc5d19bfd9b65ee682896dbe\",\"start\":\"${__timeFrom:date:iso}\",\"end\":\"${__timeTo:date:iso}\"}}"
+          },
+          "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare Workers Analytics returned an error\") else [.data.viewer.accounts[0].workersInvocationsAdaptive[] | {worker:.dimensions.scriptName,environment:(if (.dimensions.scriptName|endswith(\"-preview\")) then \"preview\" else \"production\" end),status:.dimensions.status,requests:.sum.requests,errors:.sum.errors,subrequests:.sum.subrequests,cpu_ms_p50:(.quantiles.cpuTimeP50/1000),cpu_ms_p99:(.quantiles.cpuTimeP99/1000)}] end | map(select(.environment == \"production\"))",
+          "columns": [
+            {
+              "selector": "worker",
+              "text": "Worker",
+              "type": "string"
+            },
+            {
+              "selector": "environment",
+              "text": "Environment",
+              "type": "string"
+            },
+            {
+              "selector": "status",
+              "text": "Status",
+              "type": "string"
+            },
+            {
+              "selector": "requests",
+              "text": "Requests",
+              "type": "number"
+            },
+            {
+              "selector": "errors",
+              "text": "Errors",
+              "type": "number"
+            },
+            {
+              "selector": "subrequests",
+              "text": "Subrequests",
+              "type": "number"
+            },
+            {
+              "selector": "cpu_ms_p50",
+              "text": "CPU P50 (ms)",
+              "type": "number"
+            },
+            {
+              "selector": "cpu_ms_p99",
+              "text": "CPU P99 (ms)",
+              "type": "number"
+            }
+          ]
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "Worker": 0,
+              "Environment": 1,
+              "Requests": 2,
+              "Errors": 3,
+              "Status": 4,
+              "Subrequests": 5,
+              "CPU P50 (ms)": 6,
+              "CPU P99 (ms)": 7
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Worker"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 240
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 180
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Requests",
+            "desc": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "title": "Telemetry coverage",
+      "type": "text",
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 24,
+        "h": 4
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "Cloudflare production Workers: live requests, execution errors and CPU from native Analytics. Zero observed errors is not an end-to-end availability check. Vercel deployment telemetry is not yet connected; use the native project links above. Application traces, database health and zone WAF signals are not available on this overview."
+      }
+    }
+  ],
+  "links": [
+    {
+      "title": "Cloudflare detail",
+      "type": "link",
+      "url": "https://yangjeep.grafana.net/d/leaselab-cloudflare-workers",
+      "targetBlank": true
+    },
+    {
+      "title": "Vercel ops",
+      "type": "link",
+      "url": "https://vercel.com/leaselab-dev/ops",
+      "targetBlank": true
+    },
+    {
+      "title": "Vercel site",
+      "type": "link",
+      "url": "https://vercel.com/leaselab-dev/leaselab-site",
+      "targetBlank": true
+    },
+    {
+      "title": "Vercel storefront",
+      "type": "link",
+      "url": "https://vercel.com/leaselab-dev/storefront-alda",
+      "targetBlank": true
+    }
+  ]
+}

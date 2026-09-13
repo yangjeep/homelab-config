@@ -1,0 +1,302 @@
+[
+  {
+    "uid": "openrouter-root-errors",
+    "orgID": 1,
+    "folderUID": "homelab-cloud",
+    "ruleGroup": "Homelab business signals",
+    "title": "OpenRouter sustained root generation errors",
+    "condition": "C",
+    "for": "5m",
+    "noDataState": "OK",
+    "execErrState": "Error",
+    "isPaused": false,
+    "annotations": {
+      "description": "Operational threshold: at least 3 failed root LLM Generation spans in a rolling 15-minute window, sustained for 5 minutes.",
+      "summary": "OpenRouter root generation failures exceeded the 15-minute error budget"
+    },
+    "labels": {
+      "severity": "warning",
+      "subsystem": "openrouter"
+    },
+    "data": [
+      {
+        "refId": "A",
+        "queryType": "traceql",
+        "relativeTimeRange": {
+          "from": 900,
+          "to": 0
+        },
+        "datasourceUid": "grafanacloud-traces",
+        "model": {
+          "refId": "A",
+          "datasource": {
+            "type": "tempo",
+            "uid": "grafanacloud-traces"
+          },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"openrouter\" && span:name = \"LLM Generation\" && status = error } | count_over_time()",
+          "metricsQueryType": "instant",
+          "tableType": "traces",
+          "limit": 20,
+          "exemplars": 0,
+          "intervalMs": 60000,
+          "maxDataPoints": 43200
+        }
+      },
+      {
+        "refId": "B",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "B",
+          "type": "reduce",
+          "expression": "A",
+          "reducer": "last",
+          "settings": {
+            "mode": "dropNN"
+          },
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          }
+        }
+      },
+      {
+        "refId": "C",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "C",
+          "type": "threshold",
+          "expression": "B",
+          "conditions": [
+            {
+              "evaluator": {
+                "type": "gt",
+                "params": [
+                  2
+                ]
+              },
+              "operator": {
+                "type": "and"
+              },
+              "reducer": {
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ],
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "uid": "hermes-hourly-budget-burn",
+    "orgID": 1,
+    "folderUID": "homelab-cloud",
+    "ruleGroup": "Homelab business signals",
+    "title": "Hermes hourly OpenRouter budget burn",
+    "condition": "C",
+    "for": "5m",
+    "noDataState": "OK",
+    "execErrState": "Error",
+    "isPaused": false,
+    "annotations": {
+      "description": "Operational threshold: Hermes root generations cost more than USD 0.25 in a rolling one-hour window, sustained for 5 minutes.",
+      "summary": "Hermes exceeded its hourly OpenRouter spend budget"
+    },
+    "labels": {
+      "severity": "warning",
+      "subsystem": "openrouter"
+    },
+    "data": [
+      {
+        "refId": "A",
+        "queryType": "traceql",
+        "relativeTimeRange": {
+          "from": 3600,
+          "to": 0
+        },
+        "datasourceUid": "grafanacloud-traces",
+        "model": {
+          "refId": "A",
+          "datasource": {
+            "type": "tempo",
+            "uid": "grafanacloud-traces"
+          },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"openrouter\" && span:name = \"LLM Generation\" && span.trace.metadata.openrouter.api_key_name = \"hermes\" } | sum_over_time(span.gen_ai.usage.total_cost)",
+          "metricsQueryType": "instant",
+          "tableType": "traces",
+          "limit": 20,
+          "exemplars": 0,
+          "intervalMs": 60000,
+          "maxDataPoints": 43200
+        }
+      },
+      {
+        "refId": "B",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "B",
+          "type": "reduce",
+          "expression": "A",
+          "reducer": "last",
+          "settings": {
+            "mode": "dropNN"
+          },
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          }
+        }
+      },
+      {
+        "refId": "C",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "C",
+          "type": "threshold",
+          "expression": "B",
+          "conditions": [
+            {
+              "evaluator": {
+                "type": "gt",
+                "params": [
+                  0.25
+                ]
+              },
+              "operator": {
+                "type": "and"
+              },
+              "reducer": {
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ],
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "uid": "leaselab-workers-errors",
+    "orgID": 1,
+    "folderUID": "homelab-cloud",
+    "ruleGroup": "Homelab business signals",
+    "title": "LeaseLab production Workers errors",
+    "condition": "B",
+    "for": "5m",
+    "noDataState": "OK",
+    "execErrState": "Error",
+    "isPaused": false,
+    "annotations": {
+      "description": "Operational threshold: at least 5 errors across LeaseLab production Workers in a rolling 15-minute window, sustained for 5 minutes.",
+      "summary": "LeaseLab production Workers exceeded the 15-minute error budget"
+    },
+    "labels": {
+      "severity": "warning",
+      "subsystem": "leaselab"
+    },
+    "data": [
+      {
+        "refId": "A",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 900,
+          "to": 0
+        },
+        "datasourceUid": "leaselab-cloudflare",
+        "model": {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare"
+          },
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "jq-backend",
+          "url": "https://api.cloudflare.com/client/v4/graphql",
+          "url_options": {
+            "method": "POST",
+            "body_type": "raw",
+            "body_content_type": "application/json",
+            "data": "{\"query\":\"query Workers($account: string!, $start: string!, $end: string!) {\\n  viewer {\\n    accounts(filter: {accountTag: $account}) {\\n      workersInvocationsAdaptive(\\n        limit: 500\\n        filter: {\\n          datetime_geq: $start\\n          datetime_leq: $end\\n          scriptName_in: [\\n            \\\"leaselab-worker\\\"\\n            \\\"leaselab-worker-preview\\\"\\n            \\\"leaselab-workflows\\\"\\n            \\\"leaselab-workflows-preview\\\"\\n            \\\"leaselab-email-worker\\\"\\n            \\\"leaselab-email-worker-preview\\\"\\n          ]\\n        }\\n      ) {\\n        sum { errors }\\n        dimensions { scriptName }\\n      }\\n    }\\n  }\\n}\\n\",\"variables\":{\"account\":\"280e7379fc5d19bfd9b65ee682896dbe\",\"start\":\"${__timeFrom:date:iso}\",\"end\":\"${__timeTo:date:iso}\"}}"
+          },
+          "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare Workers Analytics returned an error\") else [{errors: ([.data.viewer.accounts[0].workersInvocationsAdaptive[] | select((.dimensions.scriptName | endswith(\"-preview\")) | not) | .sum.errors] | add // 0)}] end",
+          "columns": [
+            {
+              "selector": "errors",
+              "text": "Errors",
+              "type": "number"
+            }
+          ],
+          "intervalMs": 60000,
+          "maxDataPoints": 43200
+        }
+      },
+      {
+        "refId": "B",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "refId": "B",
+          "type": "threshold",
+          "expression": "A",
+          "conditions": [
+            {
+              "evaluator": {
+                "type": "gt",
+                "params": [
+                  4
+                ]
+              },
+              "operator": {
+                "type": "and"
+              },
+              "reducer": {
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ],
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          }
+        }
+      }
+    ]
+  }
+]

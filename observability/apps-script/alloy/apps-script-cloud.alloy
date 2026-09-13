@@ -1,0 +1,83 @@
+local.file "grafana_cloud_apps_script_token" {
+	filename  = "/etc/alloy/grafana-cloud-write-token"
+	is_secret = true
+}
+
+prometheus.scrape "apps_script_cloud" {
+	targets = [{
+		"__address__" = "192.168.253.218:9100",
+		"job"         = "apps-script-observer",
+		"site"        = "home",
+	}]
+	forward_to = [prometheus.relabel.apps_script_cloud.receiver]
+}
+
+prometheus.relabel "apps_script_cloud" {
+	rule {
+		source_labels = ["__name__"]
+		regex         = "homelab_apps_script_.*"
+		action        = "keep"
+	}
+	forward_to = [prometheus.remote_write.grafana_cloud_apps_script.receiver]
+}
+
+prometheus.remote_write "grafana_cloud_apps_script" {
+	endpoint {
+		url = "https://prometheus-prod-32-prod-ca-east-0.grafana.net/api/prom/push"
+
+		basic_auth {
+			username = "1993226"
+			password = local.file.grafana_cloud_apps_script_token.content
+		}
+	}
+}
+
+loki.source.journal "apps_script_cloud" {
+	path    = "/var/log/journal"
+	max_age = "24h"
+	matches = "_SYSTEMD_UNIT=apps-script-observer.service"
+	labels  = {
+		job     = "apps-script-observer",
+		service = "apps-script-observer",
+		site    = "home",
+	}
+	forward_to = [loki.process.apps_script_cloud.receiver]
+}
+
+loki.process "apps_script_cloud" {
+	stage.json {
+		expressions = {
+			event  = "event",
+			script = "script",
+			status = "status",
+			type   = "type",
+		}
+	}
+
+	stage.labels {
+		values = {
+			event  = "",
+			script = "",
+			status = "",
+			type   = "",
+		}
+	}
+
+	stage.match {
+		selector            = "{service=\"apps-script-observer\",event!=\"apps_script.execution_terminal\"}"
+		action              = "drop"
+		drop_counter_reason = "not_terminal_execution"
+	}
+	forward_to = [loki.write.grafana_cloud_apps_script.receiver]
+}
+
+loki.write "grafana_cloud_apps_script" {
+	endpoint {
+		url = "https://logs-prod-018.grafana.net/loki/api/v1/push"
+
+		basic_auth {
+			username = "1095867"
+			password = local.file.grafana_cloud_apps_script_token.content
+		}
+	}
+}

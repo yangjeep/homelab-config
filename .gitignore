@@ -17,3 +17,9 @@
 *.pid
 .DS_Store
 Thumbs.db
+**/.venv/
+**/.pytest_cache/
+**/.ruff_cache/
+**/.omo/
+**/__pycache__/
+*.pyc

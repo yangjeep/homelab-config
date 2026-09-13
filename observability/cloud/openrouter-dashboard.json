@@ -1,0 +1,528 @@
+{
+  "uid": "ai-openrouter-cloud",
+  "title": "AI - OpenRouter Applications",
+  "schemaVersion": 40,
+  "version": 1,
+  "tags": [
+    "homelab",
+    "openrouter",
+    "control-plane"
+  ],
+  "timezone": "browser",
+  "refresh": "5m",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "editable": true,
+  "description": "Native OpenRouter Broadcast traces. Only LLM Generation spans count as requests; provider-attempt child spans are excluded from request/token/cost totals. Coverage starts when Broadcast was enabled. Missing traces are not proof of zero requests. Costs are emitted usage estimates, not an invoice. Privacy Mode is OFF by user request; raw content stays in Tempo, not this dashboard source. Cross-model fallback causality is not inferred from model selection.",
+  "links": [
+    {
+      "title": "Local Homelab NOC",
+      "type": "link",
+      "url": "http://192.168.253.228:3000/d/homelab-noc/homelab-noc",
+      "targetBlank": true
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Requests by application (selected range)",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "tempo",
+        "uid": "${DS_TEMPO}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "tempo",
+            "uid": "${DS_TEMPO}"
+          },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"openrouter\" && span:name = \"LLM Generation\" } | count_over_time() by(span.trace.metadata.openrouter.api_key_name)",
+          "tableType": "traces",
+          "limit": 20,
+          "metricsQueryType": "range",
+          "step": "300s",
+          "exemplars": 0
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "/^(hermes|wallos|paperless-ngx|warp|dbeaver)$/",
+          "values": false
+        },
+        "textMode": "auto",
+        "colorMode": "none",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 2,
+      "title": "Estimated cost by application (USD, selected range)",
+      "type": "stat",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "tempo",
+        "uid": "${DS_TEMPO}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "tempo",
+            "uid": "${DS_TEMPO}"
+          },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"openrouter\" && span:name = \"LLM Generation\" } | sum_over_time(span.gen_ai.usage.total_cost) by(span.trace.metadata.openrouter.api_key_name)",
+          "tableType": "traces",
+          "limit": 20,
+          "metricsQueryType": "range",
+          "step": "300s",
+          "exemplars": 0
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "/^(hermes|wallos|paperless-ngx|warp|dbeaver)$/",
+          "values": false
+        },
+        "textMode": "auto",
+        "colorMode": "none",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 3,
+      "title": "Request outcomes by application",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "tempo",
+        "uid": "${DS_TEMPO}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "tempo",
+            "uid": "${DS_TEMPO}"
+          },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"openrouter\" && span:name = \"LLM Generation\" } | count_over_time() by(span.trace.metadata.openrouter.api_key_name, span:status)",
+          "tableType": "traces",
+          "limit": 20,
+          "metricsQueryType": "range",
+          "step": "300s",
+          "exemplars": 3
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "sum"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "Generation latency P50 / P95",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "tempo",
+        "uid": "${DS_TEMPO}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "tempo",
+            "uid": "${DS_TEMPO}"
+          },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"openrouter\" && span:name = \"LLM Generation\" } | quantile_over_time(duration, .5, .95) by(span.trace.metadata.openrouter.api_key_name) > 0",
+          "tableType": "traces",
+          "limit": 20,
+          "metricsQueryType": "range",
+          "step": "300s",
+          "exemplars": 3
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "description": "Approximate percentiles within each five-minute interval. Positive-duration points only: Tempo otherwise fills idle intervals with zero, which is not measured zero latency."
+    },
+    {
+      "id": 5,
+      "title": "Input tokens by application",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "tempo",
+        "uid": "${DS_TEMPO}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "tempo",
+            "uid": "${DS_TEMPO}"
+          },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"openrouter\" && span:name = \"LLM Generation\" } | sum_over_time(span.gen_ai.usage.input_tokens) by(span.trace.metadata.openrouter.api_key_name)",
+          "tableType": "traces",
+          "limit": 20,
+          "metricsQueryType": "range",
+          "step": "300s",
+          "exemplars": 0
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "/^(hermes|wallos|paperless-ngx|warp|dbeaver)$/",
+          "values": false
+        },
+        "textMode": "auto",
+        "colorMode": "none",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 6,
+      "title": "Output tokens by application",
+      "type": "stat",
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "tempo",
+        "uid": "${DS_TEMPO}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "tempo",
+            "uid": "${DS_TEMPO}"
+          },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"openrouter\" && span:name = \"LLM Generation\" } | sum_over_time(span.gen_ai.usage.output_tokens) by(span.trace.metadata.openrouter.api_key_name)",
+          "tableType": "traces",
+          "limit": 20,
+          "metricsQueryType": "range",
+          "step": "300s",
+          "exemplars": 0
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "/^(hermes|wallos|paperless-ngx|warp|dbeaver)$/",
+          "values": false
+        },
+        "textMode": "auto",
+        "colorMode": "none",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 7,
+      "title": "Actual model usage",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "tempo",
+        "uid": "${DS_TEMPO}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "tempo",
+            "uid": "${DS_TEMPO}"
+          },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"openrouter\" && span:name = \"LLM Generation\" } | count_over_time() by(span.gen_ai.response.model)",
+          "tableType": "traces",
+          "limit": 20,
+          "metricsQueryType": "range",
+          "step": "300s",
+          "exemplars": 3
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "sum"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 8,
+      "title": "Serving provider outcomes",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 24,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "tempo",
+        "uid": "${DS_TEMPO}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "tempo",
+            "uid": "${DS_TEMPO}"
+          },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"openrouter\" && span:name = \"LLM Generation\" } | count_over_time() by(span.trace.metadata.openrouter.provider_name, span:status)",
+          "tableType": "traces",
+          "limit": 20,
+          "metricsQueryType": "range",
+          "step": "300s",
+          "exemplars": 3
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "sum"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 9,
+      "title": "Mean first-token latency",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "tempo",
+        "uid": "${DS_TEMPO}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "tempo",
+            "uid": "${DS_TEMPO}"
+          },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"openrouter\" && span:name = \"LLM Generation\" } | avg_over_time(span.trace.metadata.openrouter.first_token_ms) by(span.trace.metadata.openrouter.api_key_name)",
+          "tableType": "traces",
+          "limit": 20,
+          "metricsQueryType": "range",
+          "step": "300s",
+          "exemplars": 3
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "description": "Observed first-token timing, averaged within each five-minute interval. The tenant returned no series for quantiles of this float attribute; generation-duration P50/P95 is shown separately."
+    },
+    {
+      "id": 10,
+      "title": "Additional provider attempts",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 32,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "tempo",
+        "uid": "${DS_TEMPO}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "tempo",
+            "uid": "${DS_TEMPO}"
+          },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"openrouter\" && span.span.metadata.attempt_index > 0 } | count_over_time() by(span.trace.metadata.openrouter.provider_name)",
+          "tableType": "traces",
+          "limit": 20,
+          "metricsQueryType": "range",
+          "step": "300s",
+          "exemplars": 3
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "sum"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "description": "Counts zero-based attempt indices greater than 0, not affected requests or cross-model fallbacks. Multiple additional attempts may belong to one generation. No series means no matching observed attempts in this range."
+    }
+  ]
+}
