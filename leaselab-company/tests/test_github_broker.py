@@ -284,3 +284,76 @@ def test_accepts_installation_token_with_dot_and_hyphen():
     token = upstream.parse_token(json.dumps(data).encode(), policy.ROLES[0])
     # Then
     assert token.value == data['token']
+
+
+def test_source_fetch_identity_is_service_read_only():
+    # Given a dedicated service identity, when grants resolve, then no role scope changes.
+    import policy
+    assert [r.name for r in policy.SERVICE_ROLES] == ['source-fetch']
+    role = policy.SERVICE_ROLES[0]
+    assert dict(role.permissions) == {'metadata': 'read', 'contents': 'read', 'pull_requests': 'read'}
+    assert role.key_path == next(r.key_path for r in policy.ROLES if r.name == 'sre')
+    assert role not in policy.ROLES
+
+
+@pytest.mark.parametrize('length', [512, 520, 2048, 4096])
+def test_documented_long_opaque_installation_token_is_accepted(length):
+    import json
+    import upstream
+    import policy
+    data=response_fixture()
+    data['token']='ghs_'+('a'*(length-6))+'.b'
+    assert len(data['token'])==length
+    assert upstream.parse_token(json.dumps(data).encode(),policy.ROLES[0]).value==data['token']
+
+
+@pytest.mark.parametrize('value', ['a'*4097, 'ghs_abc\nInjected', 'ghs_abc\rInjected', 'ghs_abc\x00Injected', 'ghs_abc token'])
+def test_opaque_token_bound_and_control_chars_remain_denied(value):
+    import json
+    import upstream
+    import policy
+    data=response_fixture();data['token']=value
+    with pytest.raises(policy.Denied):
+        upstream.parse_token(json.dumps(data).encode(),policy.ROLES[0])
+
+
+@pytest.mark.parametrize('length', [520, 4096])
+def test_helper_receives_long_token_without_truncation(short_socket_dir, monkeypatch, length):
+    import credential_helper
+    path=str(short_socket_dir/'long.sock')
+    value='ghs_'+('a'*(length-6))+'.b'
+    monkeypatch.setattr(credential_helper,'SOCKET',path)
+    with socket.socket(socket.AF_UNIX,socket.SOCK_STREAM) as listener:
+        listener.bind(path);listener.listen(1)
+        def serve():
+            connection,_=listener.accept()
+            with connection:
+                assert connection.recv(20)==b'get\n'
+                assert connection.recv(1) == b''
+                connection.sendall((value+'\n').encode())
+        thread=threading.Thread(target=serve);thread.start()
+        try:
+            assert credential_helper.obtain()==value
+        finally:
+            thread.join(timeout=3)
+
+
+@pytest.mark.parametrize('value', ['a'*4097, 'ghs_abc\nInjected', 'ghs_abc\x00Injected'])
+def test_helper_denies_oversize_and_control_character_responses(short_socket_dir, monkeypatch, value):
+    import credential_helper
+    path=str(short_socket_dir/'malformed.sock')
+    monkeypatch.setattr(credential_helper,'SOCKET',path)
+    with socket.socket(socket.AF_UNIX,socket.SOCK_STREAM) as listener:
+        listener.bind(path);listener.listen(1)
+        def serve():
+            connection,_=listener.accept()
+            with connection:
+                assert connection.recv(20)==b'get\n'
+                assert connection.recv(1) == b''
+                connection.sendall((value+'\n').encode())
+        thread=threading.Thread(target=serve);thread.start()
+        try:
+            with pytest.raises(credential_helper.Denied):
+                credential_helper.obtain()
+        finally:
+            thread.join(timeout=3)

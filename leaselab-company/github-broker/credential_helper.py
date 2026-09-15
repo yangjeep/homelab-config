@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from policy import Denied, SOCKET
+from policy import Denied, SOCKET, TOKEN_MAX
 
 
 def credential_request(raw: bytes) -> None:
@@ -37,13 +37,13 @@ def obtain() -> str:
         connection.sendall(b'get\n')
         connection.shutdown(socket.SHUT_WR)
         response = bytearray()
-        while len(response) <= 513:
-            part = connection.recv(514 - len(response))
+        while len(response) <= TOKEN_MAX + 1:
+            part = connection.recv(TOKEN_MAX + 2 - len(response))
             if not part:
                 break
             response.extend(part)
     token = bytes(response).decode('ascii')
-    if not re.fullmatch(r'[A-Za-z0-9_.-]{10,512}\n', token):
+    if not re.fullmatch(rf'[A-Za-z0-9_.-]{{10,{TOKEN_MAX}}}\n', token):
         raise Denied
     return token.rstrip('\n')
 

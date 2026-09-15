@@ -3,7 +3,8 @@
 set -euo pipefail
 [[ $(id -u) == 0 ]]
 source_dir=$(cd -- "$(dirname -- "$0")" && pwd)
-roles=(chief-of-staff support growth qa-security reviewer sre engineer)
+getent passwd leaselab-source-fetch >/dev/null || useradd --system --user-group --no-create-home --home-dir /var/lib/leaselab-publisher/source-fetch --shell /usr/sbin/nologin leaselab-source-fetch
+roles=(chief-of-staff support growth qa-security reviewer sre engineer source-fetch)
 for role in "${roles[@]}"; do getent passwd "leaselab-$role" >/dev/null; done
 getent group leaselab-github-clients >/dev/null || groupadd --system leaselab-github-clients
 getent passwd leaselab-github-broker >/dev/null || useradd --system --no-create-home --home-dir /nonexistent --shell /usr/sbin/nologin --gid leaselab-github-clients leaselab-github-broker

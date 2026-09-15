@@ -20,7 +20,7 @@ import http.client
 
 # -I excludes script directory; add only the root-owned installation directory.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from policy import Denied, ROLES, SOCKET, Role
+from policy import Denied, ROLES, SERVICE_ROLES, SOCKET, Role
 from upstream import Token, mint
 
 
@@ -38,7 +38,7 @@ def peer_uid(connection: socket.socket) -> int:
 def role_uids() -> Mapping[int, Role]:
     """Resolve fixed account names once; duplicate/root/service UIDs fail closed."""
     result: dict[int, Role] = {}
-    for role in ROLES:
+    for role in ROLES + SERVICE_ROLES:
         uid = pwd.getpwnam('leaselab-' + role.name).pw_uid
         if uid in result or uid in (0, os.geteuid()):
             raise Denied

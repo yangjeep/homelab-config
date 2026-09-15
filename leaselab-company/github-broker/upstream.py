@@ -11,7 +11,7 @@ import stat
 import subprocess
 import time
 
-from policy import Denied, Role
+from policy import Denied, Role, TOKEN_MAX
 
 
 @dataclass(frozen=True, slots=True)
@@ -73,7 +73,7 @@ def parse_token(raw: bytes, role: Role) -> Token:
     value = data.get('token')
     expiry = data.get('expires_at')
     repos = data.get('repositories')
-    if (not isinstance(value, str) or not re.fullmatch(r'[A-Za-z0-9_.-]{10,512}', value)
+    if (not isinstance(value, str) or not re.fullmatch(rf'[A-Za-z0-9_.-]{{10,{TOKEN_MAX}}}', value)
             or not isinstance(expiry, str) or data.get('permissions') != dict(role.permissions)
             or not isinstance(repos, list) or len(repos) != 1
             or not isinstance(repos[0], dict) or repos[0].get('full_name') != 'yangjeep/leaselab'):

@@ -34,4 +34,18 @@ ROLES: Final = (
     grant('sre', (4948651, 161808475), contents='read', actions='read', checks='read', statuses='read', deployments='read', issues='read', pull_requests='read'),
     grant('engineer', (4948533, None)),
 )
+TOKEN_MAX: Final = 4096
 SOCKET: Final = '/run/leaselab-github/broker.sock'
+
+
+class SourceRole(Role):
+    """Dedicated read-only service principal; key never leaves the existing broker."""
+    @property
+    def key_path(self) -> Path:
+        return Path('/etc/leaselab-company/github/sre.pem')
+
+
+SERVICE_ROLES: Final = (
+    SourceRole('source-fetch', 4948651, 161808475, MappingProxyType({
+        'metadata': 'read', 'contents': 'read', 'pull_requests': 'read'})),
+)

@@ -86,3 +86,18 @@ keys, not real GitHub credentials. Upstream transport is tested at a substituted
 HTTPS connection seam: no live token issuance or live GitHub authorization is
 claimed by this suite. A compromised authorized role can occupy the serial loop
 for a bounded interval; no per-role availability guarantee is provided.
+
+### Source verification service and token compatibility
+
+A separate nologin `leaselab-source-fetch` principal can obtain only Metadata,
+Contents and Pull requests read access for `yangjeep/leaselab`. The broker reuses
+its existing SRE App registration/key internally; no App private key is copied to
+the fetch process and none of the seven role grants is broadened. Its output is
+source materialization, not a QA verdict or merge authorization.
+
+Installation tokens are opaque and may use GitHub's longer stateless format.
+Producer and socket helper share a 4096-character resource bound; malformed,
+control-character and oversized values remain denied. A real stateless token
+read succeeded; a bounded revoke probe returned 204 then first observed 401 at
+7.57 seconds. Do not assume revocation is instantaneous, or apply that one timing
+observation as a guarantee for key rotation, uninstall or cache invalidation.
