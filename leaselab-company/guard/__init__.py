@@ -111,9 +111,31 @@ def _slack_send_allowed(role: str, args: HookValue) -> bool:
         and message.startswith(prefix)
         and message[len(prefix) :].strip()
         # Native send_message extracts local files from MEDIA directives.
-        and "MEDIA:" not in message
+        and re.search("MEDIA:", message, re.IGNORECASE) is None
         and "[[as_document]]" not in message
         and "[[audio_as_voice]]" not in message
+    )
+
+
+def _founder_notify_allowed(role: str, args: HookValue) -> bool:
+    if (
+        role != "chief-of-staff"
+        or not isinstance(args, dict)
+        or set(args) != {"message"}
+    ):
+        return False
+    message = args["message"]
+    prefix = "[Chief of Staff] "
+    return bool(
+        isinstance(message, str)
+        and len(message) <= 3000
+        and message.startswith(prefix)
+        and message[len(prefix) :].strip()
+        and re.search("MEDIA:", message, re.IGNORECASE) is None
+        and not any(
+            marker in message.casefold()
+            for marker in ("[[as_document]]", "[[audio_as_voice]]", "\x00")
+        )
     )
 
 
@@ -150,6 +172,8 @@ def pre_tool_call(
     """Veto unsafe assignments and execution before native tool dispatch."""
     role = os.environ.get("HERMES_PROFILE", "")
     if tool_name == "send_message" and _slack_send_allowed(role, args):
+        return None
+    if tool_name == "company_founder_notify" and _founder_notify_allowed(role, args):
         return None
     permitted = ROLE_TOOLS.get(role, frozenset())
     if type(tool_name) is str and tool_name in permitted:
@@ -215,6 +239,44 @@ def register(ctx: HookContext[Registration_co]) -> None:
                 "required": ["target", "message"],
             },
         },
+    )
+
+    if os.environ.get("HERMES_PROFILE") == "chief-of-staff":
+        _ = ctx.register_tool(
+            name="company_founder_notify",
+            toolset="leaselab-slack-send",
+            handler=_notify_founder_native,
+            schema={
+                "name": "company_founder_notify",
+                "description": "Notify the verified Founder privately on Telegram, only for production outage, data-loss or destructive-migration risk, P0/release-blocking P1, rollback, credential or Founder-decision blockers, or important production completion. Routine PR/test/QA/merge/deploy updates belong in Slack or a digest. One fixed recipient; text only.",
+                "parameters": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "properties": {
+                        "message": {
+                            "type": "string",
+                            "maxLength": 3000,
+                            "description": "Nonempty plain text starting with [Chief of Staff] ; no media directives or secrets.",
+                        }
+                    },
+                    "required": ["message"],
+                },
+            },
+        )
+
+
+def _notify_founder_native(args: HookValue, **_kwargs: HookValue) -> str:
+    if not _founder_notify_allowed(os.environ.get("HERMES_PROFILE", ""), args):
+        return '{"error":"Founder notification denied by company role policy."}'
+    assert isinstance(args, dict)
+    from tools.send_message_tool import send_message_tool
+
+    return send_message_tool(
+        {
+            "action": "send",
+            "target": "telegram:660328434",
+            "message": args["message"],
+        }
     )
 
 
