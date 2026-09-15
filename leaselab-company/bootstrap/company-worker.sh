@@ -12,4 +12,30 @@ esac
 context="/var/lib/leaselab-company/workspaces/$role"
 [[ ${HERMES_KANBAN_WORKSPACE:-} = "$context" && -d $context && ! -L $context ]] || exit 77
 cd "$context"
-exec /home/hermes/.local/bin/hermes "$@"
+
+runtime_dir=${XDG_RUNTIME_DIR:-"/run/user/$(/usr/bin/id -u)"}
+bus_address=${DBUS_SESSION_BUS_ADDRESS:-"unix:path=$runtime_dir/bus"}
+worker_env=(
+  "HOME=/home/hermes"
+  "USER=hermes"
+  "LOGNAME=hermes"
+  "SHELL=/bin/bash"
+  "PATH=/home/hermes/.local/bin:/usr/local/bin:/usr/bin:/bin"
+  "XDG_RUNTIME_DIR=$runtime_dir"
+  "DBUS_SESSION_BUS_ADDRESS=$bus_address"
+  "HERMES_PROFILE=$role"
+  "HERMES_HOME=$HERMES_HOME"
+  "HERMES_KANBAN_TASK=$HERMES_KANBAN_TASK"
+  "HERMES_KANBAN_BOARD=$HERMES_KANBAN_BOARD"
+  "HERMES_KANBAN_WORKSPACE=$HERMES_KANBAN_WORKSPACE"
+  "HERMES_SESSION_SOURCE=${HERMES_SESSION_SOURCE:-kanban}"
+  "TERMINAL_CWD=$context"
+)
+for task_context in \
+  HERMES_KANBAN_DB HERMES_KANBAN_WORKSPACES_ROOT HERMES_KANBAN_RUN_ID \
+  HERMES_KANBAN_CLAIM_LOCK HERMES_KANBAN_BRANCH HERMES_KANBAN_GOAL_MODE \
+  HERMES_KANBAN_GOAL_MAX_TURNS HERMES_TENANT; do
+  value=${!task_context:-}
+  [[ -n $value ]] && worker_env+=("$task_context=$value")
+done
+exec /usr/bin/env -i "${worker_env[@]}" /home/hermes/.local/bin/hermes "$@"
