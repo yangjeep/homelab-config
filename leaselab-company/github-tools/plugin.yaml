@@ -1,0 +1,5 @@
+name: leaselab-company-github
+version: "0.1.0"
+description: "CoS fixed GitHub issue operations through its Unix credential broker."
+provides_tools:
+  - company_github
