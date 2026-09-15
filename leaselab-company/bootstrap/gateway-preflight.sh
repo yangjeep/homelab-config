@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 [[ $(id -un) = hermes && ${HERMES_PROFILE:-} = chief-of-staff ]] || exit 1
+/home/hermes/.hermes/hermes-agent/venv/bin/python /usr/local/libexec/leaselab-company/gateway-policy.py
 for role in chief-of-staff support sre engineer reviewer qa-security growth; do
   profile="/var/lib/leaselab-company/profiles/$role"
   [[ $(stat -c %a "$profile/.env") = 600 ]] || exit 1

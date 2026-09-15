@@ -71,6 +71,9 @@ platforms:
     extra:
       dm_policy: allowlist
       group_policy: disabled
+      group_allow_from: []
+      allowed_chats: ["660328434"]
+      guest_mode: false
       unauthorized_dm_behavior: ignore
 YAML
   chmod 640 "$profile/config.yaml"

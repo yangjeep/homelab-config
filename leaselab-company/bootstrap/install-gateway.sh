@@ -4,6 +4,7 @@ set -euo pipefail
 source_dir=$(cd "$(dirname "$0")/.." && pwd)
 install -d -m 755 /usr/local/libexec/leaselab-company
 install -m 755 "$source_dir/bootstrap/company-worker.sh" /usr/local/libexec/leaselab-company/company-worker.sh
+install -m 644 "$source_dir/bootstrap/gateway-policy.py" /usr/local/libexec/leaselab-company/gateway-policy.py
 install -m 755 "$source_dir/bootstrap/gateway-preflight.sh" /usr/local/libexec/leaselab-company/gateway-preflight.sh
 install -m 644 "$source_dir/systemd/leaselab-company-gateway.service" /etc/systemd/system/leaselab-company-gateway.service
 cd /home/hermes
