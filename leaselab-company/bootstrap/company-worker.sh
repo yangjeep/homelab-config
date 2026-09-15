@@ -9,4 +9,7 @@ esac
 [[ ${HERMES_PROFILE:-} = "$role" ]] || exit 77
 [[ ${HERMES_HOME:-} = "/var/lib/leaselab-company/profiles/$role" || ${HERMES_HOME:-} = "/home/hermes/.hermes/profiles/$role" ]] || exit 77
 [[ -n ${HERMES_KANBAN_TASK:-} && ${HERMES_KANBAN_BOARD:-} = leaselab-company ]] || exit 77
+context="/var/lib/leaselab-company/workspaces/$role"
+[[ ${HERMES_KANBAN_WORKSPACE:-} = "$context" && -d $context && ! -L $context ]] || exit 77
+cd "$context"
 exec /home/hermes/.local/bin/hermes "$@"
