@@ -1,0 +1,17 @@
+{
+  "removed": [],
+  "added": [
+    {
+      "tag": "USER",
+      "type": "ALLOW",
+      "perms": {
+        "BASIC": "TRAVERSE"
+      },
+      "flags": {
+        "BASIC": "NOINHERIT"
+      },
+      "id": 3004,
+      "who": null
+    }
+  ]
+}

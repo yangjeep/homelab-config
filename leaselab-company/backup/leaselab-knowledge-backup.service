@@ -1,0 +1,9 @@
+[Unit]
+Description=LeaseLab Hermes knowledge backup
+Wants=network-online.target
+After=network-online.target
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/leaselab-knowledge-backup
+UMask=0077
+TimeoutStartSec=30min

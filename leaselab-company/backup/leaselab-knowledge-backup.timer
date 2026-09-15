@@ -1,0 +1,8 @@
+[Unit]
+Description=LeaseLab Hermes knowledge backup schedule
+[Timer]
+OnCalendar=hourly
+RandomizedDelaySec=5min
+Persistent=true
+[Install]
+WantedBy=timers.target
