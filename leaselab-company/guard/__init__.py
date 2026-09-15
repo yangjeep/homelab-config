@@ -117,6 +117,33 @@ def _slack_send_allowed(role: str, args: HookValue) -> bool:
     )
 
 
+def _session_search_allowed(role: str, args: HookValue) -> bool:
+    if not isinstance(args, dict) or set(args) - {
+        "query",
+        "limit",
+        "sort",
+        "detail",
+        "session_id",
+        "around_message_id",
+        "window",
+        "role_filter",
+        "profile",
+    }:
+        return False
+    if "profile" in args and args["profile"] != role:
+        return False
+    if "session_id" not in args:
+        return True
+    session_id = args["session_id"]
+    if not isinstance(session_id, str):
+        return False
+    if "/" in session_id:
+        embedded_profile, _, session_id = session_id.partition("/")
+        if embedded_profile != role:
+            return False
+    return re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", session_id) is not None
+
+
 def pre_tool_call(
     tool_name: str, args: HookValue = None, **_kwargs: HookValue
 ) -> BlockDirective | None:
@@ -126,6 +153,13 @@ def pre_tool_call(
         return None
     permitted = ROLE_TOOLS.get(role, frozenset())
     if type(tool_name) is str and tool_name in permitted:
+        if tool_name == "session_search":
+            if _session_search_allowed(role, args):
+                return None
+            return {
+                "action": "block",
+                "message": "Session selector denied by company profile policy.",
+            }
         if tool_name == "kanban_create":
             # Native hooks receive arbitrary JSON; reject malformed values before lookup.
             if isinstance(args, dict):

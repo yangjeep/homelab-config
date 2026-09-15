@@ -97,13 +97,19 @@ def test_allows_chief_of_staff_native_tools(
     # Given
     monkeypatch.setenv("HERMES_PROFILE", "chief-of-staff")
     # When
-    directive = guard.pre_tool_call(name, args={"assignee": "engineer"})
+    directive = guard.pre_tool_call(
+        name, args={"assignee": "engineer"} if name == "kanban_create" else {}
+    )
     # Then
     assert directive is None
 
 
-@pytest.mark.parametrize("role", ["support", "sre", "engineer", "reviewer", "qa-security", "growth", ""])
-def test_denies_company_github_for_non_cos(role: str, monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize(
+    "role", ["support", "sre", "engineer", "reviewer", "qa-security", "growth", ""]
+)
+def test_denies_company_github_for_non_cos(
+    role: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
     # Given
     monkeypatch.setenv("HERMES_PROFILE", role)
     # When
