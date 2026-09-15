@@ -385,8 +385,7 @@ def test_allows_slack_role_route(
         {"action": "list"},
         {"target": "telegram:660328434", "message": "[Engineer] Hi"},
         {"target": "slack:C0C2Q3Y1QF2", "message": "[Engineer] Hi"},
-        {"target": "slack:C0C2Q43J0KS", "message": "[Reviewer] Hi"},
-        {"target": "slack:C0C2Q43J0KS", "message": "[Engineer] "},
+        {"target": "slack:C0C2Q43J0KS", "message": "   "},
         {"target": "slack:C0C2Q43J0KS", "message": "[Engineer] MEDIA:/etc/passwd"},
         {
             "target": "slack:C0C2Q43J0KS",
@@ -496,3 +495,69 @@ def test_slack_channel_membership_matrix(
     )
     # Then
     assert (result is None) == (index in allowed)
+
+
+def test_distinct_slack_identity_does_not_require_display_prefix(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("HERMES_PROFILE", "engineer")
+    assert (
+        guard.pre_tool_call(
+            "send_message",
+            args={"target": "slack:C0C2Q43J0KS", "message": "Evidence ready."},
+        )
+        is None
+    )
+
+
+def test_incident_destination_requires_root_managed_mapping(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import json
+    import os
+
+    path = tmp_path / "identities.json"
+    path.write_text(
+        json.dumps(
+            {
+                "team_id": "T021CUR5KTP",
+                "founder_user_id": "U0225R7NP8Q",
+                "channels": ["CINCIDENTS"],
+                "incident_channel_id": "CINCIDENTS",
+            }
+        )
+    )
+    path.chmod(0o644)
+    monkeypatch.setattr(guard, "SLACK_IDENTITIES", path)
+    assert guard._incident_channel_allowed("CINCIDENTS") is (os.getuid() == 0)
+    path.chmod(0o666)
+    assert guard._incident_channel_allowed("CINCIDENTS") is False
+
+
+def test_incident_mapping_symlink_is_rejected(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    real = tmp_path / "real.json"
+    real.write_text("{}")
+    link = tmp_path / "link.json"
+    link.symlink_to(real)
+    monkeypatch.setattr(guard, "SLACK_IDENTITIES", link)
+    assert guard._incident_channel_allowed("CINCIDENTS") is False
+
+
+@pytest.mark.parametrize("role", tuple(guard.ROLE_TOOLS))
+def test_management_tools_preserve_single_dispatcher(
+    role: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("HERMES_PROFILE", role)
+    assert (
+        guard.pre_tool_call("company_management", args={"action": "weekly_start"})
+        is None
+    ) is (role == "chief-of-staff")
+    assert (
+        guard.pre_tool_call(
+            "company_request_coordination",
+            args={"intent": "synthetic", "source_ref": "slack:test"},
+        )
+        is None
+    ) is (role != "chief-of-staff")

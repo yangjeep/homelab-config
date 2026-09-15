@@ -140,13 +140,16 @@ performed by this bootstrap.
 
 ## Slack collaboration and role GitHub access
 
-The existing Slack workspace `leaselabai.slack.com` has one LeaseLab Hermes app.
-Only CoS runs Socket Mode; all seven roles use the restricted native
-`leaselab-slack-send` toolset for prefixed outbound messages. Founder mention and
-CoS reply were observed in the real browser, and all seven native role sends were
-verified through channel history. The [Slack map](slack/README.md) lists all six
-channel IDs and allowlist behavior. This is transport validation, not a completed
-Kanban-to-GitHub QA/merge workflow. Telegram remains Founder-to-CoS and low noise.
+The existing Slack workspace `leaselabai.slack.com` uses seven distinct Slack
+app/bot identities, one per existing Hermes profile and OpenRouter credential.
+Each runs a dedicated native Socket Mode gateway with deterministic Founder
+mention routing; only CoS dispatches Kanban work and receives Telegram. The
+restricted `leaselab-slack-send` toolset uses real bot identity without simulated
+role prefixes. The [Slack configuration](slack/README.md) documents seven approved
+channels including incidents, incremental rollout, credentials and rollback.
+Direct Slack access does not bypass durable Kanban work or GitHub QA/merge/release
+gates. Record current end-to-end transport and management-cycle evidence in the
+deployment report; identity provisioning alone is not workflow completion.
 
 The GitHub broker is installed and enabled; its real peer-UID tests and six live
 role repository reads passed. Engineer has no installed App/key and is denied.

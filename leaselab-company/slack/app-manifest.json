@@ -1,12 +1,12 @@
 {
   "display_information": {
-    "name": "LeaseLab Hermes",
+    "name": "LeaseLab CoS",
     "description": "LeaseLab team collaboration; Kanban and GitHub remain authoritative.",
     "background_color": "#1f2937"
   },
   "features": {
     "bot_user": {
-      "display_name": "LeaseLab Hermes",
+      "display_name": "LeaseLab CoS",
       "always_online": false
     },
     "app_home": {

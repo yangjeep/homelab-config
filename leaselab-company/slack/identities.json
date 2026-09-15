@@ -1,0 +1,44 @@
+{
+  "team_id": "T021CUR5KTP",
+  "founder_user_id": "U0225R7NP8Q",
+  "channels": [
+    "C0C2Q3Y1QF2",
+    "C0C2Q43J0KS",
+    "C0C1XMT2BU1",
+    "C0C1PH369DH",
+    "C0C1XMYQMR7",
+    "C0C1R45U8SH",
+    "C0C22U2AC76"
+  ],
+  "incident_channel_id": "C0C22U2AC76",
+  "roles": {
+    "chief-of-staff": {
+      "app_id": "A0C1ZBVK0A0",
+      "bot_user_id": "U0C1TPNUT54"
+    },
+    "engineer": {
+      "app_id": "A0C1T1C1V7D",
+      "bot_user_id": "U0C1Z6C6ECA"
+    },
+    "qa-security": {
+      "app_id": "A0C1Z3H7J5Q",
+      "bot_user_id": "U0C1X7T11F0"
+    },
+    "reviewer": {
+      "app_id": "A0C213V830R",
+      "bot_user_id": "U0C2TH9R00G"
+    },
+    "sre": {
+      "app_id": "A0C214H1ZK3",
+      "bot_user_id": "U0C1X8MRNP8"
+    },
+    "support": {
+      "app_id": "A0C1T05DNE7",
+      "bot_user_id": "U0C1T0KN15H"
+    },
+    "growth": {
+      "app_id": "A0C2THSL11N",
+      "bot_user_id": "U0C1X95NKGW"
+    }
+  }
+}

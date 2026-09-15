@@ -1,0 +1,36 @@
+[Unit]
+Description=LeaseLab %i native Slack gateway
+Wants=network-online.target
+After=network-online.target ssh.service
+StartLimitIntervalSec=300
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=hermes
+Group=hermes
+UMask=0077
+WorkingDirectory=/home/hermes/.hermes/hermes-agent
+Environment=HOME=/home/hermes
+Environment=HERMES_PROFILE=%i
+Environment=HERMES_HOME=/var/lib/leaselab-company/profiles/%i
+Environment=HERMES_KANBAN_HOME=/var/lib/leaselab-company
+Environment=HERMES_KANBAN_BOARD=leaselab-company
+Environment=HERMES_KANBAN_DISPATCH_IN_GATEWAY=false
+Environment=HERMES_BIN=/usr/local/libexec/leaselab-company/company-worker.sh
+Environment=PATH=/home/hermes/.local/bin:/usr/local/bin:/usr/bin:/bin
+RuntimeDirectory=leaselab-company-%i
+ExecStartPre=/home/hermes/.hermes/hermes-agent/venv/bin/python /usr/local/libexec/leaselab-company/specialist-gateway-preflight.py
+ExecStartPre=/home/hermes/.hermes/hermes-agent/venv/bin/python /usr/local/libexec/leaselab-company/slack-team-preflight.py
+ExecStart=/usr/bin/flock --nonblock /run/leaselab-company-%i/gateway.lock /home/hermes/.local/bin/hermes -p %i gateway run
+Restart=on-failure
+RestartSec=15
+TimeoutStopSec=90
+KillMode=control-group
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectProc=invisible
+ProcSubset=pid
+
+[Install]
+WantedBy=multi-user.target

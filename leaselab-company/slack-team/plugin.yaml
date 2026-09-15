@@ -1,0 +1,3 @@
+name: leaselab-slack-team
+version: "0.1.0"
+description: "Founder-only deterministic Slack role ingress policy."

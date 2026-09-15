@@ -56,15 +56,27 @@ GitHub broker service is live. Its peer-UID policy issues fixed reduced scopes f
 
 | Symbol | Provider / owner | Environment and capability | External storage / runtime path | Rotation / authorization / status |
 | --- | --- | --- | --- | --- |
-| SLACK_BOT_TOKEN | Slack; shared company outbound identity | Workspace T021CUR5KTP; guarded role-prefixed messages in six fixed channels | Private item u22cg74334qrejnxyj7xdjq4ti; seven private profile `.env` files | Revoke/regenerate in Slack, replace all copies; authorized; all seven native sends verified |
-| SLACK_APP_TOKEN | Slack; CoS only | Socket Mode connections:write; sole listener | Private item ljyben6zao27f2be5stlnve6fi; only CoS `.env` | Revoke/regenerate app-level token; authorized; founder mention/reply verified |
 | CF_OBSERVER_SERVICE | Cloudflare; trusted observer service | Account 280e7379fc5d19bfd9b65ee682896dbe; Workers Scripts/Tail read | Private document r4icpfrbstx5rnyw2qkconro2y; vault only | Replace/revoke provider token; authorized; read APIs 200; NOT DEPLOYED |
 | CF_RELEASE_SERVICE | Cloudflare; trusted SRE release service | Same account; D1/Workers Scripts write; resource/controller restrictions required | Private document otaingqoc2itaotuvpeovblts4; vault only | Replace/revoke provider token; authorized; metadata reads 200; NOT DEPLOYED, no migration/promotion test |
 | VERCEL_SITE_SERVICE | Vercel; trusted release service | leaselab-site / prj_nv44nGrZegfzrgJiSBhtuClqtrcd | Private document vnzyltygmljf2xocy2x4gr66ei; vault only | Replace/revoke project token; authorized; own project 200, other projects 404; NOT DEPLOYED |
 | VERCEL_OPS_SERVICE | Vercel; trusted release service | ops / prj_AsYiiGeT0DaZewIv9WRrgYX8hGnA | Private document c66cgi4bnrnx6agfa6zgjgxvgy; vault only | Same rotation; authorized; own project 200, site 404; NOT DEPLOYED |
 | VERCEL_STOREFRONT_SERVICE | Vercel; trusted release service | storefront-alda / prj_5kjbAxTpJK7VEm8DWvZVQBaVMVXn | Private document pxkrsdff7helqrk3ailyy2rt44; vault only | Same rotation; authorized; own project 200, ops 404; NOT DEPLOYED |
 
-Slack founder allowlist is `U0225R7NP8Q`; strict mentions include threads, DMs are disabled and bot messages ignored. `leaselab-slack-send` delegates to the native sender while restricting channels, role prefixes and send-only operations. No worker receives a Socket token or Telegram access. See [Slack channel map](slack/README.md). Slack messages cannot satisfy QA or merge gates.
+Slack uses seven distinct bot/app credential pairs. Each row maps the existing profile to its native Slack routing identity and the same profile's OpenRouter key above. Runtime variables are `SLACK_BOT_TOKEN` and `SLACK_APP_TOKEN` in `/var/lib/leaselab-company/profiles/<profile>/.env`; profile files remain private. Workspace is `T021CUR5KTP`; app tokens have Socket Mode `connections:write` capability. Rotate/revoke only the affected role's bot/app tokens in Slack, update that role's private environment and 1Password item, then verify its identity and gateway. Bootstrap is authorized; vault persistence for new specialist pairs is still BLOCKED on 1Password authorization.
+
+| Profile | App ID | Bot user ID | 1Password storage | Vault status |
+| --- | --- | --- | --- | --- |
+| chief-of-staff | A0C1ZBVK0A0 | U0C1TPNUT54 | Bot: u22cg74334qrejnxyj7xdjq4ti; app: ljyben6zao27f2be5stlnve6fi | Existing CoS items retained |
+| engineer | A0C1T1C1V7D | U0C1Z6C6ECA | Pending dedicated role item; UUID not yet available | BLOCKED — new pair not yet stored in 1Password |
+| qa-security | A0C1Z3H7J5Q | U0C1X7T11F0 | Pending dedicated role item; UUID not yet available | BLOCKED — new pair not yet stored in 1Password |
+| reviewer | A0C213V830R | U0C2TH9R00G | Pending dedicated role item; UUID not yet available | BLOCKED — new pair not yet stored in 1Password |
+| sre | A0C214H1ZK3 | U0C1X8MRNP8 | Pending dedicated role item; UUID not yet available | BLOCKED — new pair not yet stored in 1Password |
+| support | A0C1T05DNE7 | U0C1T0KN15H | Pending dedicated role item; UUID not yet available | BLOCKED — new pair not yet stored in 1Password |
+| growth | A0C2THSL11N | U0C1X95NKGW | Pending dedicated role item; UUID not yet available | BLOCKED — new pair not yet stored in 1Password |
+
+The nonsecret root-managed `/etc/leaselab-company/slack-identities.json` supplies this mapping and the approved channel IDs, including `#incidents` (`C0C22U2AC76`). It contains no credentials. Role identity provisioning is not proof of end-to-end behavior; deployment validation records those results separately.
+
+Slack founder allowlist is `U0225R7NP8Q`; strict mentions include threads, DMs are disabled and bot messages ignored. `leaselab-slack-send` restricts destinations, plain text and send-only operations; real bot identities replace simulated role prefixes. Each specialist receives its own Socket credential, while Telegram remains CoS-only. See [Slack configuration and recovery](slack/README.md). Slack messages cannot satisfy QA, merge or production gates.
 
 Cloudflare credentials are account-scoped, and Vercel tokens are project-scoped rather than environment/action-scoped. All expire September 15, 2027. Do not expose them to model shells; provision only after trusted resource allowlists and approved-artifact controllers exist. These read probes do not demonstrate safe release authority.
 

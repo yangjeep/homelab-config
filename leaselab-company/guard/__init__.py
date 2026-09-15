@@ -3,8 +3,12 @@
 import logging
 import os
 import re
+import stat
 from collections.abc import Callable, Mapping
+from pathlib import Path
 from typing import Final, Literal, Protocol, TypedDict, TypeVar
+
+from pydantic import ConfigDict, JsonValue, TypeAdapter
 
 LEARNING: Final = frozenset(
     {"memory", "skills_list", "skill_view", "skill_manage", "session_search"}
@@ -29,13 +33,16 @@ SSH_TOOLS: Final = frozenset(
     {"terminal", "read_file", "write_file", "patch", "search_files"}
 )
 ROLE_TOOLS: Final = {
-    "chief-of-staff": LEARNING | COS_KANBAN | {"company_github"},
-    "support": LEARNING | WORKER_KANBAN | SSH_TOOLS,
-    "sre": LEARNING | WORKER_KANBAN | SSH_TOOLS,
-    "engineer": LEARNING | WORKER_KANBAN | SSH_TOOLS,
-    "reviewer": LEARNING | WORKER_KANBAN | SSH_TOOLS,
-    "qa-security": LEARNING | WORKER_KANBAN | SSH_TOOLS,
-    "growth": LEARNING | WORKER_KANBAN | SSH_TOOLS,
+    "chief-of-staff": LEARNING | COS_KANBAN | {"company_github", "company_management"},
+    "support": LEARNING | WORKER_KANBAN | SSH_TOOLS | {"company_request_coordination"},
+    "sre": LEARNING | WORKER_KANBAN | SSH_TOOLS | {"company_request_coordination"},
+    "engineer": LEARNING | WORKER_KANBAN | SSH_TOOLS | {"company_request_coordination"},
+    "reviewer": LEARNING | WORKER_KANBAN | SSH_TOOLS | {"company_request_coordination"},
+    "qa-security": LEARNING
+    | WORKER_KANBAN
+    | SSH_TOOLS
+    | {"company_request_coordination"},
+    "growth": LEARNING | WORKER_KANBAN | SSH_TOOLS | {"company_request_coordination"},
 }
 LOGGER: Final = logging.getLogger(__name__)
 SLACK_CHANNEL_ROLES: Final = {
@@ -46,15 +53,10 @@ SLACK_CHANNEL_ROLES: Final = {
     "C0C1XMYQMR7": frozenset({"chief-of-staff", "support", "sre", "engineer"}),
     "C0C1R45U8SH": frozenset({"chief-of-staff", "growth", "engineer"}),
 }
-SLACK_PREFIXES: Final = {
-    "chief-of-staff": "[Chief of Staff] ",
-    "engineer": "[Engineer] ",
-    "reviewer": "[Reviewer] ",
-    "qa-security": "[QA/Security] ",
-    "sre": "[SRE] ",
-    "support": "[Support] ",
-    "growth": "[Growth] ",
-}
+SLACK_IDENTITIES: Final = Path("/etc/leaselab-company/slack-identities.json")
+IDENTITY_DATA: Final = TypeAdapter(
+    dict[str, JsonValue], config=ConfigDict(hide_input_in_errors=True)
+)
 SLACK_TARGET: Final = re.compile(r"slack:(C[A-Z0-9]+)(?::[0-9]{10}\.[0-9]{6})?")
 
 
@@ -93,6 +95,31 @@ def _terminal_config() -> Mapping[str, str | int]:
     }
 
 
+def _incident_channel_allowed(channel: str) -> bool:
+    """Only root-managed workspace mapping may extend fixed sender destinations."""
+    try:
+        descriptor = os.open(SLACK_IDENTITIES, os.O_RDONLY | os.O_NOFOLLOW)
+        with os.fdopen(descriptor) as handle:
+            info = os.fstat(handle.fileno())
+            if (
+                not stat.S_ISREG(info.st_mode)
+                or info.st_uid != 0
+                or info.st_mode & 0o022
+            ):
+                return False
+            data = IDENTITY_DATA.validate_json(handle.read())
+        channels = data.get("channels")
+        return (
+            data.get("team_id") == "T021CUR5KTP"
+            and data.get("founder_user_id") == "U0225R7NP8Q"
+            and data.get("incident_channel_id") == channel
+            and isinstance(channels, list)
+            and channel in channels
+        )
+    except (OSError, ValueError):
+        return False
+
+
 def _slack_send_allowed(role: str, args: HookValue) -> bool:
     """Allow only attributed text to explicit company channels and Slack threads."""
     if not isinstance(args, dict) or set(args) - {"action", "target", "message"}:
@@ -103,13 +130,14 @@ def _slack_send_allowed(role: str, args: HookValue) -> bool:
     if not isinstance(target, str) or not isinstance(message, str):
         return False
     destination = SLACK_TARGET.fullmatch(target)
-    prefix = SLACK_PREFIXES.get(role)
     return bool(
         destination
-        and role in SLACK_CHANNEL_ROLES.get(destination[1], frozenset())
-        and prefix
-        and message.startswith(prefix)
-        and message[len(prefix) :].strip()
+        and role in ROLE_TOOLS
+        and (
+            role in SLACK_CHANNEL_ROLES.get(destination[1], frozenset())
+            or _incident_channel_allowed(destination[1])
+        )
+        and message.strip()
         # Native send_message extracts local files from MEDIA directives.
         and re.search("MEDIA:", message, re.IGNORECASE) is None
         and "[[as_document]]" not in message
@@ -221,7 +249,7 @@ def register(ctx: HookContext[Registration_co]) -> None:
         handler=_send_slack_native,
         schema={
             "name": "send_message",
-            "description": "Post role-prefixed plain text to an authorized LeaseLab Slack channel or thread. Kanban and GitHub remain authoritative.",
+            "description": "Post plain text using your own Slack identity to an authorized LeaseLab Slack channel or thread. Kanban and GitHub remain authoritative.",
             "parameters": {
                 "type": "object",
                 "additionalProperties": False,
@@ -233,7 +261,7 @@ def register(ctx: HookContext[Registration_co]) -> None:
                     },
                     "message": {
                         "type": "string",
-                        "description": "Plain text starting with your exact [Role] prefix; no media directives.",
+                        "description": "Nonempty plain text; no media directives or identity overrides.",
                     },
                 },
                 "required": ["target", "message"],
