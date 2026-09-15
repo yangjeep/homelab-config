@@ -1,0 +1,18 @@
+{
+  "include": [
+    "merge_models.py",
+    "merge_policy.py",
+    "merge_transport.py",
+    "merge_server.py",
+    "merge_client.py",
+    "merge_observer.py"
+  ],
+  "extraPaths": [
+    "../../github-broker",
+    "../policy-observer"
+  ],
+  "pythonVersion": "3.11",
+  "pythonPlatform": "Linux",
+  "typeCheckingMode": "all",
+  "reportImplicitRelativeImport": false
+}

@@ -1,0 +1,29 @@
+[Unit]
+Description=LeaseLab privileged policy observer (disabled until separately authorized)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=leaselab-policy-observer
+Group=leaselab-policy-observer
+RuntimeDirectory=leaselab-policy-observer
+RuntimeDirectoryMode=0750
+ExecStart=/usr/local/lib/leaselab-policy-observer/venv/bin/python -I /usr/local/lib/leaselab-policy-observer/observer_server.py
+UMask=0027
+Restart=no
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+ProtectProc=invisible
+RestrictSUIDSGID=yes
+LockPersonality=yes
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+ReadOnlyPaths=/etc/leaselab-company/policy-observer /usr/local/libexec/leaselab-company/github-broker
+ReadWritePaths=/run/leaselab-policy-observer

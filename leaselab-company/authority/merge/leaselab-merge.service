@@ -1,0 +1,32 @@
+[Unit]
+Description=LeaseLab Reviewer merge authority
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=leaselab-merge
+Group=leaselab-merge
+RuntimeDirectory=leaselab-merge
+RuntimeDirectoryMode=0750
+ExecStart=/usr/local/lib/leaselab-merge/venv/bin/python -I /usr/local/lib/leaselab-merge/merge_server.py
+UMask=0027
+Restart=on-failure
+RestartSec=10
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+ReadOnlyPaths=/etc/leaselab-company/merge /usr/local/libexec/leaselab-company/github-broker
+ReadWritePaths=/run/leaselab-merge
+
+[Install]
+WantedBy=multi-user.target

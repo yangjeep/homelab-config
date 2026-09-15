@@ -1,0 +1,13 @@
+# Offline observer validation — 2026-09-15
+
+Implementation consists of five bounded Python modules (boundary models, policy reads, TLS transport, Unix protocol, daemon), disabled configuration/unit templates, and two offline test files. It reuses the broker token minter rather than duplicating token parsing or key handling. App and installation IDs remain null. No existing merge module was edited.
+
+Local macOS: 45 passed, 5 Linux-specific cases skipped. Tests cover complete semantic payload retention, nonce binding, absent bypass actors/required fields, malformed inventory, wrong scope/schema, duplicate/truncated/untrusted pagination, fixed path rejection, disabled/unprovisioned config, exact privileged grant, fixed GET origin/method, redirects/errors/compression/oversized response.
+
+Linux LXC916: **50 passed in 0.37 seconds**, no skips. Tests run from a unique root-owned temporary test tree and its own venv, not an agent-owned interpreter. Synthetic token mint and synthetic GitHub responses only. Real Unix tests cover current-UID SO_PEERCRED, wrong peer rejection, oversized request rejection, and a forked client dropped to UID/GID 65534 connecting to a temporary listener: accepted only when that exact UID is trusted. An initial denied-client fixture expected an error frame unconditionally; it was corrected because rejection before reading can reset a connection with unread data. The gate itself did not need a change.
+
+The strong peer fixture uses a world-writable temporary test socket solely to let the kernel-authentication rejection path be exercised; the prepared production unit/socket contract is restrictive. No production observer account/service/key was installed. The test venv/package installation and temporary fixture files were the only Linux test changes; the unique test tree was removed after validation.
+
+Static checks: basedpyright with the observer's standalone-module configuration reported 0 errors and 0 warnings. Ruff and the programming skill's no-excuse checker passed. The local import layout follows the existing installed service pattern; pyright's implicit-relative-import diagnostic is disabled for those standalone modules, with no type-ignore annotations.
+
+Architectural review: each module has a single responsibility; wire inputs are parsed with strict boundary models; unknown GitHub semantic fields are preserved; no arbitrary transport or process-execution route is exposed. This is a self-review and synthetic protocol validation, not independent security approval or a live GitHub credential test. Administration-write custody and observation-to-mutation limitations are explicit in README.md. Existing runtime remains disabled and merge integration remains unimplemented.
