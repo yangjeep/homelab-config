@@ -3,8 +3,10 @@
 import logging
 import os
 import re
+import sqlite3
 import stat
 from collections.abc import Callable, Mapping
+from contextlib import closing
 from pathlib import Path
 from typing import Final, Literal, Protocol, TypedDict, TypeVar
 
@@ -120,6 +122,74 @@ def _incident_channel_allowed(channel: str) -> bool:
         return False
 
 
+KANBAN_DATABASE: Final = Path(
+    "/var/lib/leaselab-company/kanban/boards/leaselab-company/kanban.db"
+)
+TASK_ROW: Final = TypeAdapter(
+    tuple[
+        Literal[
+            "triage",
+            "todo",
+            "scheduled",
+            "ready",
+            "running",
+            "blocked",
+            "review",
+            "done",
+            "archived",
+        ],
+        str | None,
+        str | None,
+    ],
+    config=ConfigDict(strict=True, hide_input_in_errors=True),
+)
+
+
+def _dependency_denial(parents: HookValue) -> str | None:
+    """Inspect prerequisite state without creating or mutating the native board."""
+    if not isinstance(parents, list) or any(
+        not isinstance(parent, str) or not parent for parent in parents
+    ):
+        return "Task prerequisites must be explicit task IDs."
+    if not parents:
+        return None
+    try:
+        with closing(
+            sqlite3.connect(KANBAN_DATABASE.as_uri() + "?mode=ro", uri=True)
+        ) as connection:
+            for parent in parents:
+                status, body, key = TASK_ROW.validate_python(
+                    connection.execute(
+                        "SELECT status, body, idempotency_key FROM tasks WHERE id = ?",
+                        (parent,),
+                    ).fetchone()
+                )
+                # Native management helpers reserve these root keys; child work adds a suffix.
+                if (
+                    key
+                    and key.count(":") == 1
+                    and key.startswith(("incident:", "management:"))
+                ):
+                    if body is None:
+                        return "Management anchor evidence is missing; inspect the authoritative task before linking."
+                    record = IDENTITY_DATA.validate_json(body)
+                    expected = (
+                        "incident"
+                        if key.startswith("incident:")
+                        else "weekly_management"
+                    )
+                    if (
+                        record.get("record_type") != expected
+                        or record.get("identity") != key.split(":", 1)[1]
+                    ):
+                        return "Management anchor evidence is malformed; inspect the authoritative task before linking."
+                    if status != "done":
+                        return "An unfinished management/incident anchor is containment, not a prerequisite. Record its ID in the body/creator relationship; depend on executable evidence work instead, then schedule a CoS recheck."
+    except (sqlite3.Error, OSError, ValueError):
+        return "Cannot verify authoritative prerequisite state; inspect the board and retry without guessing dependencies."
+    return None
+
+
 def _slack_send_allowed(role: str, args: HookValue) -> bool:
     """Allow only attributed text to explicit company channels and Slack threads."""
     if not isinstance(args, dict) or set(args) - {"action", "target", "message"}:
@@ -213,15 +283,32 @@ def pre_tool_call(
                 "message": "Session selector denied by company profile policy.",
             }
         if tool_name == "kanban_create":
-            # Native hooks receive arbitrary JSON; reject malformed values before lookup.
-            if isinstance(args, dict):
-                assignee = args.get("assignee")
-                if isinstance(assignee, str) and assignee in ROLE_TOOLS:
-                    return None
-            return {
-                "action": "block",
-                "message": "Task assignee denied by company policy.",
-            }
+            if not isinstance(args, dict):
+                return {
+                    "action": "block",
+                    "message": "Task assignee denied by company policy.",
+                }
+            assignee = args.get("assignee")
+            if not isinstance(assignee, str) or assignee not in ROLE_TOOLS:
+                return {
+                    "action": "block",
+                    "message": "Task assignee denied by company policy.",
+                }
+            if (
+                args.get("workspace_kind") != "dir"
+                or args.get("workspace_path")
+                != f"/var/lib/leaselab-company/workspaces/{assignee}"
+            ):
+                return {
+                    "action": "block",
+                    "message": "Set workspace_kind=dir and workspace_path=/var/lib/leaselab-company/workspaces/<assignee>. Private SSH fixture/worktree paths belong in the task body, not the native launch workspace.",
+                }
+            denial = _dependency_denial(args.get("parents", []))
+            return {"action": "block", "message": denial} if denial else None
+        if tool_name == "kanban_link":
+            parents = [args.get("parent_id")] if isinstance(args, dict) else None
+            denial = _dependency_denial(parents)
+            return {"action": "block", "message": denial} if denial else None
         if tool_name not in SSH_TOOLS:
             return None
         try:

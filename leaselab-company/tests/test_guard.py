@@ -97,9 +97,17 @@ def test_allows_chief_of_staff_native_tools(
     # Given
     monkeypatch.setenv("HERMES_PROFILE", "chief-of-staff")
     # When
-    directive = guard.pre_tool_call(
-        name, args={"assignee": "engineer"} if name == "kanban_create" else {}
-    )
+    args: guard.HookValue = {}
+    if name == "kanban_create":
+        args = {
+            "assignee": "engineer",
+            "workspace_kind": "dir",
+            "workspace_path": "/var/lib/leaselab-company/workspaces/engineer",
+        }
+    if name == "kanban_link":
+        args = {"parent_id": "ordinary-work", "child_id": "next-work"}
+        monkeypatch.setattr(guard, "_dependency_denial", lambda parents: None)
+    directive = guard.pre_tool_call(name, args=args)
     # Then
     assert directive is None
 
@@ -151,7 +159,14 @@ def test_allows_task_creation_when_assignee_is_exact_company_profile(
     # Given
     monkeypatch.setenv("HERMES_PROFILE", "chief-of-staff")
     # When
-    directive = guard.pre_tool_call("kanban_create", args={"assignee": assignee})
+    directive = guard.pre_tool_call(
+        "kanban_create",
+        args={
+            "assignee": assignee,
+            "workspace_kind": "dir",
+            "workspace_path": f"/var/lib/leaselab-company/workspaces/{assignee}",
+        },
+    )
     # Then
     assert directive is None
 
@@ -561,3 +576,119 @@ def test_management_tools_preserve_single_dispatcher(
         )
         is None
     ) is (role != "chief-of-staff")
+
+
+@pytest.mark.parametrize("tool", ["kanban_create", "kanban_link"])
+@pytest.mark.parametrize(
+    "parent_kind,status,null_body,allowed",
+    [
+        ("incident", "blocked", False, False),
+        ("weekly_management", "running", False, False),
+        ("incident", "done", False, True),
+        ("work", "running", False, True),
+        ("work", "running", True, True),
+        ("incident", "done", True, False),
+        ("weekly_management", "done", True, False),
+    ],
+)
+def test_dependency_cannot_wait_for_its_unfinished_management_anchor(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    tool: str,
+    parent_kind: str,
+    status: str,
+    null_body: bool,
+    allowed: bool,
+) -> None:
+    import json
+    import sqlite3
+    from contextlib import closing
+
+    database = tmp_path / "kanban.db"
+    identity = "test-cycle"
+    body = (
+        json.dumps({"record_type": parent_kind, "identity": identity})
+        if parent_kind != "work"
+        else "Implement an ordinary issue contract"
+    )
+    if null_body:
+        body = None
+    key = (
+        ("management:" if parent_kind == "weekly_management" else "incident:")
+        + identity
+        if parent_kind != "work"
+        else "work:implementation"
+    )
+    with closing(sqlite3.connect(database)) as connection:
+        connection.execute(
+            "CREATE TABLE tasks (id TEXT PRIMARY KEY, status TEXT, body TEXT, idempotency_key TEXT)"
+        )
+        connection.execute(
+            "INSERT INTO tasks VALUES (?,?,?,?)", ("parent", status, body, key)
+        )
+        connection.commit()
+    monkeypatch.setattr(guard, "KANBAN_DATABASE", database, raising=False)
+    monkeypatch.setenv("HERMES_PROFILE", "chief-of-staff")
+    args = (
+        {
+            "assignee": "engineer",
+            "workspace_kind": "dir",
+            "workspace_path": "/var/lib/leaselab-company/workspaces/engineer",
+            "parents": ["parent"],
+        }
+        if tool == "kanban_create"
+        else {"parent_id": "parent", "child_id": "child"}
+    )
+    assert (guard.pre_tool_call(tool, args=args) is None) is allowed
+
+
+def test_create_rejects_private_ssh_launch_directory(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("HERMES_PROFILE", "chief-of-staff")
+    result = guard.pre_tool_call(
+        "kanban_create",
+        args={
+            "assignee": "engineer",
+            "workspace_kind": "dir",
+            "workspace_path": "/srv/leaselab/roles/engineer/workspaces/drill",
+        },
+    )
+    assert result is not None
+    assert "workspace" in result["message"]
+
+
+@pytest.mark.parametrize(
+    "case", ["missing_database", "missing_task", "malformed_anchor", "invalid_status"]
+)
+def test_dependency_evidence_failure_denies(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, case: str
+) -> None:
+    import sqlite3
+    from contextlib import closing
+
+    database = tmp_path / "board.db"
+    if case != "missing_database":
+        with closing(sqlite3.connect(database)) as connection:
+            connection.execute(
+                "CREATE TABLE tasks (id TEXT PRIMARY KEY, status TEXT, body TEXT, idempotency_key TEXT)"
+            )
+            if case != "missing_task":
+                connection.execute(
+                    "INSERT INTO tasks VALUES (?,?,?,?)",
+                    (
+                        "parent",
+                        "invalid" if case == "invalid_status" else "blocked",
+                        "malformed",
+                        "incident:cycle",
+                    ),
+                )
+            connection.commit()
+    monkeypatch.setattr(guard, "KANBAN_DATABASE", database)
+    monkeypatch.setenv("HERMES_PROFILE", "chief-of-staff")
+    assert (
+        guard.pre_tool_call(
+            "kanban_link", args={"parent_id": "parent", "child_id": "child"}
+        )
+        is not None
+    )
