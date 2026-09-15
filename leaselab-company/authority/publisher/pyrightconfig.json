@@ -1,0 +1,19 @@
+{
+  "include": [
+    "publisher_models.py",
+    "publisher_files.py",
+    "publisher_jobs.py",
+    "executor*.py",
+    "source*.py",
+    "verification*.py",
+    "review*.py"
+  ],
+  "pythonVersion": "3.11",
+  "pythonPlatform": "Linux",
+  "typeCheckingMode": "all",
+  "reportImplicitRelativeImport": false,
+  "reportUnnecessaryComparison": false,
+  "extraPaths": [
+    "../../github-broker"
+  ]
+}

@@ -1,0 +1,10 @@
+allowed_approval_policies = ["never"]
+allowed_sandbox_modes = ["read-only"]
+allow_managed_hooks_only = true
+[mcp_servers]
+[permissions.filesystem]
+deny_read = ["/var/lib/leaselab-publisher/executor/qa-security/home", "/proc"]
+[permissions.verifier]
+extends = ":read-only"
+[permissions.verifier.network]
+enabled = false

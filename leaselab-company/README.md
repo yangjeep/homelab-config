@@ -210,3 +210,11 @@ The disabled merge service now has an authenticated fixed-socket Policy Observer
 client. The separate observer App still needs explicit Administration-write
 authorization before it can be provisioned. Tests and source code do not grant
 that authority or enable the merge service.
+
+The root-managed [verification command](authority/publisher/VERIFICATION.md)
+now connects exact GitHub source, an isolated documentation check and a real
+Codex Reviewer. A historical PR returned a validated `clear` disposition;
+a factual-error fixture with hostile instructions/configuration returned a
+finding. Both remain non-authorizing evidence. Full QA recipes, trusted check
+publication, supported unattended auth and the merge/release workflow are still
+unfinished. See the [Reviewer runbook](authority/publisher/REVIEW.md).

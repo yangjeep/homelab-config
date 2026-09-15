@@ -1,0 +1,15 @@
+[Unit]
+Description=LeaseLab isolated publisher canary (%i)
+[Service]
+Type=oneshot
+User=root
+ExecStart=/opt/leaselab-publisher-executor/venv/bin/python /usr/local/libexec/leaselab-company/publisher/executor_main.py %i codex-canary
+UMask=0077
+RuntimeMaxSec=200
+TimeoutStopSec=10
+KillMode=control-group
+MemoryMax=1G
+TasksMax=96
+CPUQuota=100%
+PrivateTmp=yes
+NoNewPrivileges=yes
