@@ -1,0 +1,9 @@
+{
+  "include": ["__init__.py"],
+  "stubPath": "typing",
+  "pythonVersion": "3.11",
+  "pythonPlatform": "Linux",
+  "typeCheckingMode": "all",
+  "reportMissingModuleSource": false,
+  "reportPrivateUsage": false
+}

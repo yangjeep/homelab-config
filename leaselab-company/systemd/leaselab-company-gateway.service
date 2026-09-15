@@ -1,0 +1,34 @@
+[Unit]
+Description=LeaseLab Chief of Staff Telegram and native Kanban dispatcher
+Wants=network-online.target
+After=network-online.target ssh.service
+StartLimitIntervalSec=300
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=hermes
+Group=hermes
+UMask=0077
+WorkingDirectory=/home/hermes/.hermes/hermes-agent
+Environment=HOME=/home/hermes
+Environment=HERMES_PROFILE=chief-of-staff
+Environment=HERMES_HOME=/var/lib/leaselab-company/profiles/chief-of-staff
+Environment=HERMES_KANBAN_HOME=/var/lib/leaselab-company
+Environment=HERMES_KANBAN_BOARD=leaselab-company
+Environment=HERMES_BIN=/usr/local/libexec/leaselab-company/company-worker.sh
+Environment=PATH=/home/hermes/.local/bin:/usr/local/bin:/usr/bin:/bin
+RuntimeDirectory=leaselab-company
+ExecStartPre=/usr/local/libexec/leaselab-company/gateway-preflight.sh
+ExecStart=/usr/bin/flock --nonblock /run/leaselab-company/gateway.lock /home/hermes/.local/bin/hermes -p chief-of-staff gateway run
+Restart=on-failure
+RestartSec=15
+TimeoutStopSec=90
+KillMode=control-group
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectProc=invisible
+ProcSubset=pid
+
+[Install]
+WantedBy=multi-user.target

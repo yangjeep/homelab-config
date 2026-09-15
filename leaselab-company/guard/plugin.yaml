@@ -1,0 +1,5 @@
+name: leaselab-company-guard
+version: "0.1.0"
+description: "Explicit native company role tools with verified SSH execution."
+provides_hooks:
+  - pre_tool_call
