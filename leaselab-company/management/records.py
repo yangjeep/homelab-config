@@ -30,6 +30,17 @@ def update_incident(board: Board, parent_id: str, update: IncidentUpdate) -> Rec
     current = current_record(board, parent_id)
     if current.record_type != "incident" or current.status == "closed":
         raise ManagementError("An open incident is required")
-    changed = current.model_copy(update=update.model_dump())
+    if (
+        current.notification_state == "sent"
+        and update.slack_thread
+        and update.slack_thread != current.slack_thread
+    ):
+        raise ManagementError(
+            "Incident already has a different canonical thread; reuse its receipt"
+        )
+    fields = update.model_dump(exclude_unset=True)
+    if not update.slack_thread:
+        fields.pop("slack_thread", None)
+    changed = current.model_copy(update=fields)
     board.comment(parent_id, changed.model_dump_json())
     return changed

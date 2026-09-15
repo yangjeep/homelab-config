@@ -4,7 +4,7 @@ import os
 from collections.abc import Callable, Mapping
 from typing import Protocol, TypeVar
 
-from .models import ROLES
+from .models import ROLES, THREAD_HINT, THREAD_PATTERN
 from .plugin import Value, company_management, company_request_coordination
 
 Registration_co = TypeVar("Registration_co", covariant=True)
@@ -93,7 +93,11 @@ def register(ctx: Context[Registration_co]) -> None:
                                     "type": "array",
                                     "items": {"type": "string"},
                                 },
-                                "slack_thread": {"type": "string"},
+                                "slack_thread": {
+                                    "type": "string",
+                                    "pattern": THREAD_PATTERN,
+                                    "description": THREAD_HINT,
+                                },
                                 "synthetic": {"type": "boolean"},
                             },
                         },
@@ -114,7 +118,11 @@ def register(ctx: Context[Registration_co]) -> None:
                                     "type": "array",
                                     "items": {"type": "string"},
                                 },
-                                "slack_thread": {"type": "string"},
+                                "slack_thread": {
+                                    "type": "string",
+                                    "pattern": THREAD_PATTERN,
+                                    "description": THREAD_HINT,
+                                },
                                 "mitigation": {"type": "string"},
                                 "follow_up": {
                                     "type": "array",

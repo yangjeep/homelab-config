@@ -4,6 +4,9 @@ from typing import Final, Literal, assert_never
 
 from pydantic import BaseModel, ConfigDict, Field, JsonValue, model_validator
 
+THREAD_PATTERN: Final = r"^(?:slack:C[A-Z0-9]+:[0-9]{10}\.[0-9]{6})?$"
+THREAD_HINT: Final = "Use the actual returned #incidents thread target slack:C...:1234567890.123456, or empty until its root exists; provenance source_ref is not a send target."
+
 Role = Literal["support", "sre", "engineer", "reviewer", "qa-security", "growth"]
 ROLES: Final[tuple[Role, ...]] = (
     "support",
@@ -84,6 +87,7 @@ class TaskView(Model):
 
 
 class Cycle(Model):
+    slack_thread: str = ""
     parent: str
     children: list[str]
     summary: str
@@ -105,7 +109,9 @@ class IncidentRequest(Model):
     primary_owner: Role
     participants: list[Role] = Field(min_length=2, max_length=6)
     github_links: list[str] = Field(default_factory=list, max_length=12)
-    slack_thread: str = ""
+    slack_thread: str = Field(
+        default="", pattern=THREAD_PATTERN, description=THREAD_HINT
+    )
     synthetic: bool = False
 
     @model_validator(mode="after")
@@ -140,6 +146,7 @@ class Record(Model):
     follow_up: list[str] = Field(default_factory=list)
     synthetic: bool = False
     question_plan: str = ""
+    notification_state: Literal["idle", "pending", "sent", "reconciliation"] = "idle"
 
 
 class IncidentUpdate(Model):
@@ -148,7 +155,9 @@ class IncidentUpdate(Model):
     blockers: list[str] = Field(default_factory=list)
     artifacts: list[str] = Field(default_factory=list)
     github_links: list[str] = Field(default_factory=list)
-    slack_thread: str = ""
+    slack_thread: str = Field(
+        default="", pattern=THREAD_PATTERN, description=THREAD_HINT
+    )
     mitigation: str = "Pending"
     follow_up: list[str] = Field(default_factory=list)
 

@@ -83,3 +83,49 @@ Read-only production verification:
 Regression first failed, then **22 native tests passed in 1.84 seconds**, including actual `complete_task(summary=..., metadata=...)` and a separately authored native comment. The test also proves another role's comment is excluded and the CoS-only checkpoint method is unaffected. Strict types and lint passed.
 
 Deployment delta: `models.py`, `native.py`, new `native_evidence.py` (plus source stubs/tests for reproducibility). No production deployment or restart was performed by this subtask.
+
+### Native incident notification receipt (2026-09-15)
+
+`incident_start` now serializes CoS gateway/dispatcher entry with a board-local
+advisory lock, persists the blocked anchor, and records `notification_state=pending`
+before invoking the existing native `send_message_tool`. It posts to the configured
+`#incidents` channel using the root-owned role identity map, then checkpoints the
+returned message timestamp as `slack:C...:1234567890.123456` with state `sent`.
+Only after that receipt exists are participant cards created/released. The returned
+`Cycle.slack_thread` and role instructions reuse that canonical thread; the latest
+CoS checkpoint supersedes any historical task-body target. Other checkpoints cannot
+erase or replace a sent receipt.
+
+No additional Slack client, tokens, scheduler, or state database is introduced.
+The adjacent `.incident.lock` file contains no state or secrets. No exactly-once
+transport claim is made: a crash after Slack accepted a message but before receipt
+persistence is ambiguous. Returned transport failures become `reconciliation`;
+process death leaves `pending`. Either state blocks creation of new participants
+and refuses blind automatic resend. An authorized CoS must inspect the existing
+incident root and resume `incident_start` with its actual `slack_thread`. A retry
+then checkpoints the supplied recovery target and creates/reuses the same cards.
+Historical malformed targets remain readable but require the same explicit repair;
+they are never converted from provenance into a destination. If no root exists,
+create one through the already authorized native send surface, inspect its receipt,
+and resume with that target. Do not delete the pending state to force a resend.
+
+Tests use real isolated native boards; only directory provisioning and external
+native-send transport are substituted. They cover attempt-before-send ordering,
+receipt-before-dispatch, failed delivery, process interruption, no blind resend,
+explicit recovery, idempotent resumed cards, concurrent entry exclusion, canonical
+receipt immutability, historical record readability, and target validation.
+Production deployment/restart and live recovery remain the parent executor's work.
+
+Recovery-root verification now uses the already installed Slack SDK and native
+`agent.secret_scope.get_secret` with the CoS profile's own credential. An exact
+`conversations.history` query (channel plus identical oldest/latest timestamp,
+inclusive, limit one, 15-second timeout, no SDK retries) must return a root authored
+by the configured CoS bot. Its text must identify both the incident ID and
+`Authoritative Kanban: <parent ID>`. Missing, unrelated, reply, other-bot, malformed,
+or unavailable evidence fails closed. This read occurs for every supplied recovery
+target and every `sent`-state resume; a CoS-authored checkpoint flag is not evidence.
+No model-writable verification boolean is trusted or stored. Native successful-send
+receipts establish the initial thread without another network read. Same-ID resumes
+also reject changed GitHub links alongside participants, owner, severity, impact,
+and synthetic status. Existing confirmed 003 root can be verified and reused without
+creating another root or changing completed child IDs.

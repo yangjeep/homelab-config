@@ -9,7 +9,13 @@ from zoneinfo import ZoneInfo
 
 from pydantic import ValidationError
 
-from .models import ROLES, CoordinationRequest, ManagementRequest
+from .models import (
+    ROLES,
+    THREAD_HINT,
+    CoordinationRequest,
+    ManagementError,
+    ManagementRequest,
+)
 from .native import Board, Card
 from .records import update_incident
 from .session_context import coordination_origin, slack_conversation
@@ -31,6 +37,13 @@ def company_management(args: Value, **_kwargs: Value) -> str:
         return '{"error":"CoS management authority required"}'
     try:
         request = ManagementRequest.model_validate(args)
+        thread = ""
+        if request.action == "incident_start" and request.incident:
+            thread = request.incident.slack_thread
+        if request.action == "incident_update" and request.checkpoint:
+            thread = request.checkpoint.slack_thread
+        if thread and thread.split(":")[1] != load_directory().incident_channel_id:
+            return json.dumps({"error": THREAD_HINT})
         board = Board()
         match request.action:
             case "team_status":
@@ -92,9 +105,12 @@ def company_management(args: Value, **_kwargs: Value) -> str:
                         include_input=False, include_context=False, include_url=False
                     )
                 ],
-                "hint": "Omit week for the current Toronto week, or use YYYY-Www. Each role question must contain 10 to 2000 characters.",
+                "hint": THREAD_HINT
+                + " Omit week for the current Toronto week, or use YYYY-Www. Each role question must contain 10 to 2000 characters.",
             }
         )
+    except ManagementError as exc:
+        return json.dumps({"error": exc.reason})
     except (ValueError, OSError):
         return '{"error":"Invalid management request or incomplete evidence; inspect native task state"}'
 

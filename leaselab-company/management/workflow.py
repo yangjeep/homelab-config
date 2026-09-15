@@ -2,6 +2,7 @@
 
 from datetime import datetime, timezone
 
+from .incident_notification import ensure_incident_thread, incident_lock
 from .incident_roles import create_investigations
 from .models import (
     ROLES,
@@ -140,6 +141,12 @@ def summary_context(board: Board, parent_id: str) -> Evidence:
 
 
 def start_incident(board: Board, request: IncidentRequest) -> Cycle:
+    """Serialize receipt establishment and idempotent participant creation."""
+    with incident_lock(board):
+        return _start_incident(board, request)
+
+
+def _start_incident(board: Board, request: IncidentRequest) -> Cycle:
     """Persist an incident and separate investigations without release authority."""
     record = Record(
         record_type="incident",
@@ -165,6 +172,8 @@ def start_incident(board: Board, request: IncidentRequest) -> Cycle:
             priority=priority,
         )
     )
+    thread = ensure_incident_thread(board, parent, request)
+    request = request.model_copy(update={"slack_thread": thread})
     assignments = create_investigations(board, request, parent)
     children = [assignments[role] for role in request.participants]
     summary = board.create(
@@ -186,6 +195,7 @@ def start_incident(board: Board, request: IncidentRequest) -> Cycle:
         children=children,
         summary=summary,
         assignments=assignments,
+        slack_thread=thread,
     )
 
 

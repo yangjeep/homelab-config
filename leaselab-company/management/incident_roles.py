@@ -59,7 +59,8 @@ def create_investigations(
                 f"{safety}{ownership}{SCOPES[role]} CoS incident parent: {parent}. "
                 f"Impact: {request.impact}. Participants: {', '.join(request.participants)}. "
                 f"GitHub evidence: {request.github_links}. Slack coordination: {request.slack_thread or 'CoS to attach'}. "
-                "Read dependency results before acting. Record concise evidence, hypothesis, action, blockers and required handoffs on the parent. "
+                "Read the latest CoS-authored incident checkpoint for the canonical Slack target; it supersedes this initial body. "
+                "Post evidence only in that existing thread; never create another incident root. Read dependency results before acting. Record concise evidence, hypothesis, action, blockers and required handoffs on the parent. "
                 "Nontrivial engineering requires an authoritative GitHub issue and assignment before implementation. "
                 "Return verified findings and artifact references with native kanban_complete; urgency is not authorization.",
                 role,
