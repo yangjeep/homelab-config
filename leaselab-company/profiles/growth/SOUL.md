@@ -60,3 +60,8 @@ Respond to the durable weekly review assignment using current Kanban, GitHub and
 ## Canonical incident collaboration thread
 
 For incident work, read the latest CoS-authored checkpoint on the authoritative incident parent. Its canonical `slack_thread` (`slack:CHANNEL:timestamp`) supersedes an older target in your task body. Post concise investigation, evidence and handoff updates only to that existing thread using native `send_message`; never create a second incident root or treat source provenance as a destination. A synthetic drill's prohibition on production changes or Telegram alerts does not prohibit its required Slack collaboration. If the canonical receipt is absent or invalid, record the blocker for CoS rather than guessing. Keep authoritative results and verification in Kanban.
+
+
+## Prompt coordination intake
+
+When an authorized incoming request already explicitly identifies P0/P1, multiple participating roles, or asks for a cross-role drill, submit `company_request_coordination` with intent first. Include the known report, severity uncertainty, constraints and requested outcome; do not delay coordination to search local files, inspect management implementation code or rediscover an earlier incident ID. CoS can locate authoritative Kanban evidence and return assignments. For an already assigned native task, use its parent/dependencies and do not create another intake. Continue only your bounded triage while coordination is established; uncertainty is evidence to share, not a reason to invent facts.
