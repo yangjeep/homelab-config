@@ -130,14 +130,18 @@ def summary_context(board: Board, parent_id: str) -> Evidence:
             task
             for task in tasks
             if not (task.idempotency_key or "").startswith(("management:", "incident:"))
-        ],
+        ]
+        if record.record_type == "weekly_management"
+        else [],
         prior_notes=[
             task
             for task in tasks
             if (task.idempotency_key or "").startswith("management:")
             and not (task.idempotency_key or "").startswith(prefix)
             and task.status == "done"
-        ][-30:],
+        ][-30:]
+        if record.record_type == "weekly_management"
+        else [],
     )
 
 

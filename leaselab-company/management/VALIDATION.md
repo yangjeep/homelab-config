@@ -168,3 +168,16 @@ canary directly; no production access, Telegram, retry loop or engineering work 
 needed. Isolated native tests prove atomic inheritance, persisted blocked events
 after database reopen, and idempotent subscription repair; live wake acceptance is
 separate and must be performed by the parent executor after rollout.
+
+### Incident summary context scope
+
+Incident `summary_context` now returns only its completed/incomplete participant
+records; `current_work` and `prior_notes` are empty. Weekly context retains company
+work and historical management notes unchanged. No participant evidence is truncated.
+Read-only measurement of actual 004 (`t_3c0ecce6`), using unchanged live source versus
+staged fixed source against SQLite `mode=ro`: total serialized JSON fell from 76,784
+to 8,211 bytes. All three completed participant records remained exactly 8,115 bytes;
+incomplete remained empty. Removed unrelated current work accounted for 22,212 bytes
+and weekly notes for 46,365 bytes. The regression first failed on leaked unrelated
+work, then passed alongside the complete 57-test isolated native suite. No production
+code, service or task state was changed during measurement.

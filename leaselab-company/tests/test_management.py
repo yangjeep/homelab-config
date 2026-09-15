@@ -1081,3 +1081,42 @@ def test_blocked_wake_survives_reopen_and_subscription_retry(tmp_path: Path) -> 
         )
         assert len(events) == 1
         assert events[0].kind == "blocked"
+
+
+def test_incident_context_excludes_company_noise_without_losing_evidence(
+    tmp_path: Path,
+) -> None:
+    from management.native import Card
+
+    board = Board(tmp_path / "kanban.db")
+    unrelated = board.create(
+        Card("Unrelated implementation", "Company work", "engineer", "unrelated:work")
+    )
+    previous = start_weekly(board, "2026-W37")
+    board.complete(previous.children[0], "Previous support management note")
+    current = start_weekly(board, "2026-W38")
+    incident = start_incident(
+        board,
+        IncidentRequest(
+            incident_id="TEST-CONTEXT",
+            severity="P1",
+            impact="Fixture",
+            primary_owner="engineer",
+            participants=["engineer", "qa-security"],
+            synthetic=True,
+        ),
+    )
+    evidence = "Exact incident reproduction evidence retained in full." * 100
+    board.complete(incident.assignments["engineer"], evidence)
+    result = summary_context(board, incident.parent)
+    assert result.current_work == []
+    assert result.prior_notes == []
+    assert [task.id for task in result.completed] == [incident.assignments["engineer"]]
+    assert result.completed[0].result == evidence
+    assert [task.id for task in result.incomplete] == [
+        incident.assignments["qa-security"]
+    ]
+    weekly = summary_context(board, current.parent)
+    assert unrelated in {task.id for task in weekly.current_work}
+    assert previous.children[0] in {task.id for task in weekly.prior_notes}
+    assert {task.id for task in weekly.incomplete} == set(current.children)
