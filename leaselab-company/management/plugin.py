@@ -37,6 +37,18 @@ def company_management(args: Value, **_kwargs: Value) -> str:
         return '{"error":"CoS management authority required"}'
     try:
         request = ManagementRequest.model_validate(args)
+        if (
+            request.action
+            in {"summary_context", "incident_update", "incident_close", "weekly_close"}
+            and not request.parent_id.strip()
+        ):
+            return json.dumps(
+                {
+                    "error": "Management validation failed",
+                    "fields": [{"path": "parent_id", "rule": "required"}],
+                    "hint": "Supply top-level parent_id using the native Kanban parent task ID returned as Cycle.parent; a nested incident contract or incident ID does not replace parent_id.",
+                }
+            )
         thread = ""
         if request.action == "incident_start" and request.incident:
             thread = request.incident.slack_thread
@@ -105,8 +117,12 @@ def company_management(args: Value, **_kwargs: Value) -> str:
                         include_input=False, include_context=False, include_url=False
                     )
                 ],
-                "hint": THREAD_HINT
-                + " Omit week for the current Toronto week, or use YYYY-Www. Each role question must contain 10 to 2000 characters.",
+                "hint": (
+                    "Pass a JSON object directly; do not stringify or JSON-encode the tool arguments."
+                    if not isinstance(args, dict)
+                    else THREAD_HINT
+                    + " Omit week for the current Toronto week, or use YYYY-Www. Each role question must contain 10 to 2000 characters."
+                ),
             }
         )
     except ManagementError as exc:

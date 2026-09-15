@@ -201,7 +201,10 @@ class ManagementRequest(Model):
         "weekly_close",
     ]
     week: str = Field(default="", pattern=r"^(?:\d{4}-W\d{2})?$")
-    parent_id: str = ""
+    parent_id: str = Field(
+        default="",
+        description="Required for summary_context, incident_update, incident_close and weekly_close: native Kanban parent task ID (Cycle.parent), not incident_id. Supply at the top level.",
+    )
     questions: Questions | None = None
     incident: IncidentRequest | None = None
     checkpoint: IncidentUpdate | None = None

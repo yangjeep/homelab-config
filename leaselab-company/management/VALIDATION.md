@@ -181,3 +181,18 @@ incomplete remained empty. Removed unrelated current work accounted for 22,212 b
 and weekly notes for 46,365 bytes. The regression first failed on leaked unrelated
 work, then passed alongside the complete 57-test isolated native suite. No production
 code, service or task state was changed during measurement.
+
+### Missing parent argument and validation hints
+
+Actual closure calls were JSON objects containing a nested incident contract but no
+`parent_id`; the default empty ID reached `Board.task("")`, whose absent native task
+then raised a root-level Pydantic error. This was not evidence of a stringified tool
+call. The handler now requires a nonblank top-level `parent_id` before opening the
+board for summary_context, incident_update, incident_close and weekly_close. Its
+safe error identifies `parent_id` and explains that it is the native Kanban task ID
+returned as `Cycle.parent`, not the incident identifier or nested incident object.
+Start/team-status paths remain unchanged; schema field documentation makes this
+requirement visible to the model. Four regression cases fail before the fix and
+pass afterward. Independently, genuinely scalar/list/JSON-string inputs remain
+rejected with JSON-object-required/no-stringify guidance rather than a thread hint;
+no implicit JSON parsing was added. The combined native suite passes 65 tests.

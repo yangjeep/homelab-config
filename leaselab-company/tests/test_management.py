@@ -1120,3 +1120,53 @@ def test_incident_context_excludes_company_noise_without_losing_evidence(
     assert unrelated in {task.id for task in weekly.current_work}
     assert previous.children[0] in {task.id for task in weekly.prior_notes}
     assert {task.id for task in weekly.incomplete} == set(current.children)
+
+
+@pytest.mark.parametrize(
+    "value", ['{"action":"summary_context","parent_id":"t_fixture"}', 7, None, []]
+)
+def test_management_root_type_error_explains_object_required(
+    value: str | int | None | list[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import json
+
+    from management.plugin import company_management
+
+    monkeypatch.setenv("HERMES_PROFILE", "chief-of-staff")
+    result = json.loads(company_management(value))
+    assert result["error"] == "Management validation failed"
+    assert result["fields"][0]["path"] == ""
+    assert "JSON object" in result["hint"]
+    assert "do not stringify" in result["hint"]
+    assert "#incidents" not in result["hint"]
+    assert "t_fixture" not in json.dumps(result)
+
+
+@pytest.mark.parametrize(
+    "action", ["summary_context", "incident_update", "incident_close", "weekly_close"]
+)
+def test_management_requires_parent_before_native_access(
+    action: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import json
+
+    from management import plugin
+
+    monkeypatch.setenv("HERMES_PROFILE", "chief-of-staff")
+
+    def forbidden_board() -> None:
+        raise AssertionError("Missing parent reached native board")
+
+    monkeypatch.setattr(plugin, "Board", forbidden_board)
+    result = json.loads(
+        plugin.company_management(
+            {
+                "action": action,
+                "resolution": "Synthetic resolved",
+                "verification": "Fixture checked",
+            }
+        )
+    )
+    assert result["fields"] == [{"path": "parent_id", "rule": "required"}]
+    assert "top-level parent_id" in result["hint"]
+    assert "Cycle.parent" in result["hint"]

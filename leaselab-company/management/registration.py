@@ -67,7 +67,10 @@ def register(ctx: Context[Registration_co]) -> None:
                             "pattern": r"^(?:\d{4}-W\d{2})?$",
                             "description": "ISO week YYYY-Www, for example 2026-W38. Omit for current Toronto week. Do not supply a calendar date.",
                         },
-                        "parent_id": {"type": "string"},
+                        "parent_id": {
+                            "type": "string",
+                            "description": "Required for summary_context, incident_update, incident_close and weekly_close: native Kanban parent task ID (Cycle.parent), not incident_id. Supply at the top level.",
+                        },
                         "incident": {
                             "type": "object",
                             "required": [
