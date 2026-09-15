@@ -1,0 +1,25 @@
+[Unit]
+Description=LeaseLab aggregate Kanban and OpenRouter metrics
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+UMask=0077
+ExecStart=/home/hermes/.hermes/hermes-agent/venv/bin/python /usr/local/libexec/leaselab-company-metrics/company_metrics.py
+TimeoutStartSec=120
+StateDirectory=leaselab-company-metrics
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/var/lib/leaselab-company-metrics /var/lib/prometheus/node-exporter
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+MemoryMax=192M
+CPUQuota=25%

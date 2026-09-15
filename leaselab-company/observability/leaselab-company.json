@@ -1,0 +1,740 @@
+{
+  "uid": "leaselab-company",
+  "title": "AI - LeaseLab Company",
+  "description": "Independent LeaseLab Hermes runtime, Kanban aggregates and current OpenRouter role-key usage. Collection health does not establish QA, review, merge or release approval.",
+  "schemaVersion": 40,
+  "version": 0,
+  "editable": true,
+  "tags": [
+    "homelab",
+    "noc"
+  ],
+  "timezone": "browser",
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "links": [
+    {
+      "title": "Homelab dashboards",
+      "type": "dashboards",
+      "tags": [
+        "noc"
+      ],
+      "asDropdown": true,
+      "includeVars": true,
+      "keepTime": true
+    }
+  ],
+  "panels": [
+    {
+      "title": "LXC exporter",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "homelab-prometheus"
+      },
+      "description": "",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "homelab-prometheus"
+          },
+          "expr": "up{host=\"hermes-leaselab\",job=\"observability-node\"}",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bool",
+          "noValue": "UNKNOWN",
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": false
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "DOWN",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "UP",
+                  "color": "green"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "textMode": "value_and_name",
+        "graphMode": "none",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 24
+        }
+      },
+      "id": 1,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 5
+      }
+    },
+    {
+      "title": "Chief of Staff gateway",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "homelab-prometheus"
+      },
+      "description": "",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "homelab-prometheus"
+          },
+          "expr": "node_systemd_unit_state{host=\"hermes-leaselab\",name=\"leaselab-company-gateway.service\",state=\"active\"}",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bool",
+          "noValue": "UNKNOWN",
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": false
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "DOWN",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "UP",
+                  "color": "green"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "textMode": "value_and_name",
+        "graphMode": "none",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 24
+        }
+      },
+      "id": 2,
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 5
+      }
+    },
+    {
+      "title": "Collection sources healthy",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "homelab-prometheus"
+      },
+      "description": "Expected eight sources: Kanban and seven OpenRouter role keys.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "homelab-prometheus"
+          },
+          "expr": "sum(leaselab_company_source_success{host=\"hermes-leaselab\"})",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "UNKNOWN",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "textMode": "value_and_name",
+        "graphMode": "none",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 24
+        }
+      },
+      "id": 3,
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 5
+      }
+    },
+    {
+      "title": "Oldest successful collection",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "homelab-prometheus"
+      },
+      "description": "Five-minute cadence. More than ten minutes indicates stale data; no data is unknown.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "homelab-prometheus"
+          },
+          "expr": "time()-min(leaselab_company_source_last_success_seconds{host=\"hermes-leaselab\"})",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "UNKNOWN",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "textMode": "value_and_name",
+        "graphMode": "none",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 24
+        }
+      },
+      "id": 4,
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 5
+      }
+    },
+    {
+      "title": "Current keys: monthly spend",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "homelab-prometheus"
+      },
+      "description": "Usage for the seven current keys. The separate workspace hard cap is USD30/month. Retired keys are not included in this counter.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "homelab-prometheus"
+          },
+          "expr": "sum(leaselab_openrouter_usage_usd{host=\"hermes-leaselab\",period=\"monthly\"})",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "noValue": "UNKNOWN",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "textMode": "value_and_name",
+        "graphMode": "none",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 24
+        }
+      },
+      "id": 5,
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 8,
+        "h": 5
+      }
+    },
+    {
+      "title": "Kanban in progress",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "homelab-prometheus"
+      },
+      "description": "",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "homelab-prometheus"
+          },
+          "expr": "sum(leaselab_kanban_tasks{host=\"hermes-leaselab\",status=~\"running|review\"})",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "UNKNOWN",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "textMode": "value_and_name",
+        "graphMode": "none",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 24
+        }
+      },
+      "id": 6,
+      "gridPos": {
+        "x": 8,
+        "y": 5,
+        "w": 8,
+        "h": 5
+      }
+    },
+    {
+      "title": "Kanban blocked",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "homelab-prometheus"
+      },
+      "description": "",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "homelab-prometheus"
+          },
+          "expr": "sum(leaselab_kanban_tasks{host=\"hermes-leaselab\",status=\"blocked\"})",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "UNKNOWN",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "textMode": "value_and_name",
+        "graphMode": "none",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 24
+        }
+      },
+      "id": 7,
+      "gridPos": {
+        "x": 16,
+        "y": 5,
+        "w": 8,
+        "h": 5
+      }
+    },
+    {
+      "title": "Monthly spend by role",
+      "type": "bargauge",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "homelab-prometheus"
+      },
+      "description": "",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "homelab-prometheus"
+          },
+          "expr": "leaselab_openrouter_usage_usd{host=\"hermes-leaselab\",period=\"monthly\"}",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "legendFormat": "{{role}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "noValue": "UNKNOWN",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true
+      },
+      "id": 8,
+      "gridPos": {
+        "x": 0,
+        "y": 10,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "title": "Kanban tasks by lifecycle",
+      "type": "bargauge",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "homelab-prometheus"
+      },
+      "description": "",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "homelab-prometheus"
+          },
+          "expr": "sum by (status) (leaselab_kanban_tasks{host=\"hermes-leaselab\"})",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "legendFormat": "{{status}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "UNKNOWN",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true
+      },
+      "id": 9,
+      "gridPos": {
+        "x": 12,
+        "y": 10,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "title": "Collection failures since collector initialization",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "homelab-prometheus"
+      },
+      "description": "Counts failed collection attempts, not failed agent/model requests.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "homelab-prometheus"
+          },
+          "expr": "leaselab_company_source_failures_total{host=\"hermes-leaselab\"}",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "legendFormat": "{{source}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "UNKNOWN",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "textMode": "value_and_name",
+        "graphMode": "none",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 24
+        }
+      },
+      "id": 10,
+      "gridPos": {
+        "x": 0,
+        "y": 18,
+        "w": 12,
+        "h": 6
+      }
+    },
+    {
+      "title": "Backup timers active",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "homelab-prometheus"
+      },
+      "description": "",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "homelab-prometheus"
+          },
+          "expr": "node_systemd_unit_state{host=\"hermes-leaselab\",name=~\"leaselab-(full|knowledge)-backup.timer\",state=\"active\"}",
+          "editorMode": "code",
+          "range": false,
+          "instant": true,
+          "legendFormat": "{{name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bool",
+          "noValue": "UNKNOWN",
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": false
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "DOWN",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "UP",
+                  "color": "green"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "textMode": "value_and_name",
+        "graphMode": "none",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 24
+        }
+      },
+      "id": 11,
+      "gridPos": {
+        "x": 12,
+        "y": 18,
+        "w": 12,
+        "h": 6
+      }
+    }
+  ]
+}
