@@ -129,3 +129,42 @@ receipts establish the initial thread without another network read. Same-ID resu
 also reject changed GitHub links alongside participants, owner, severity, impact,
 and synthetic status. Existing confirmed 003 root can be verified and reused without
 creating another root or changing completed child IDs.
+
+### Durable incident wake subscription
+
+`incident_start` subscribes the verified root anchor before participant creation,
+using `hermes_cli.kanban_db_notify.add_notify_sub` with `delivery_mode="wake"`.
+The destination is the fixed configured incident channel and canonical thread,
+workspace `T021CUR5KTP`, Founder `U0225R7NP8Q`, and notifier profile `chief-of-staff`.
+Native `create_task` calls `inherit_creator_origin` inside its transaction, so new
+children receive the durable subscription before becoming dispatchable. Existing
+children and summary cards are repaired idempotently. A conflicting owner on the
+same subscription key fails closed rather than silently adopting foreign routing.
+
+The native notifier supports wake-only delivery, but no per-subscription event
+filter. It wakes on completion, blocked, gave-up, crash, timeout and review events;
+bookkeeping events remain silent. There is no passive Slack event ping. Existing
+native cursor/claim/delivery handling supplies restart/retry behavior. Slack wake
+sources are reconstructed from the subscription metadata, so a NULL task session ID
+does not prevent this destination from waking CoS. No new scheduler or queue exists.
+
+After rollout, repair existing 004 under the CoS native secret scope:
+
+```python
+from management.native import Board
+from management.incident_wake import repair_incident_wakes
+repair_incident_wakes(Board(), "t_3c0ecce6")
+```
+
+This verifies the existing Slack root before subscribing. Newly added subscriptions
+start at the current event cursor; old pre-fix failures are deliberately not replayed.
+Inspect the current incident once after repair. Repeating repair preserves existing
+unseen events and does not duplicate subscription rows.
+
+Bounded acceptance: create a synthetic Support canary with `creator` set to 004,
+request one native `kanban_block`, then confirm a real CoS gateway wake, current-card
+inspection and a canonical-thread acknowledgement. CoS may complete the synthetic
+canary directly; no production access, Telegram, retry loop or engineering work is
+needed. Isolated native tests prove atomic inheritance, persisted blocked events
+after database reopen, and idempotent subscription repair; live wake acceptance is
+separate and must be performed by the parent executor after rollout.

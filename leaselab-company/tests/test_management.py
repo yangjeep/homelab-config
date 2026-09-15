@@ -35,6 +35,9 @@ def native_notification_transport(
         }
     )
     monkeypatch.setattr(notification, "load_directory", lambda: directory)
+    from management import incident_wake
+
+    monkeypatch.setattr(incident_wake, "load_directory", lambda: directory)
     from management import slack_root
     from management.models import Record
 
@@ -976,3 +979,105 @@ def test_sent_checkpoint_still_requires_external_proof_on_resume(
         start_incident(board, request)
     assert len(board.tasks()) == 4
     assert board.task(first.parent).status == "blocked"
+
+
+def test_incident_children_inherit_durable_cos_wake(tmp_path: Path) -> None:
+    from contextlib import closing
+
+    from hermes_cli.kanban_db_connect import connect
+    from hermes_cli.kanban_db_notify import list_notify_subs
+
+    board = Board(tmp_path / "kanban.db")
+    cycle = start_incident(
+        board,
+        IncidentRequest(
+            incident_id="TEST-WAKE",
+            severity="P1",
+            impact="Fixture",
+            primary_owner="engineer",
+            participants=["engineer", "qa-security"],
+            synthetic=True,
+        ),
+    )
+    with closing(connect(db_path=board.path)) as conn:
+        for task_id in [cycle.parent, *cycle.children, cycle.summary]:
+            subs = list_notify_subs(conn, task_id)
+            assert len(subs) == 1
+            assert subs[0]["delivery_mode"] == "wake"
+            assert subs[0]["notifier_profile"] == "chief-of-staff"
+            assert subs[0]["user_id"] == "U0225R7NP8Q"
+
+
+def test_wake_is_inherited_inside_child_creation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from contextlib import closing
+
+    from hermes_cli.kanban_db_connect import connect
+    from hermes_cli.kanban_db_notify import list_notify_subs
+    from management.native import Card
+
+    original = Board.create
+    seen = []
+
+    def create(board: Board, card: Card) -> str:
+        task_id = original(board, card)
+        if card.creator:
+            with closing(connect(db_path=board.path)) as conn:
+                assert len(list_notify_subs(conn, task_id)) == 1
+            seen.append(task_id)
+        return task_id
+
+    monkeypatch.setattr(Board, "create", create)
+    board = Board(tmp_path / "kanban.db")
+    cycle = start_incident(
+        board,
+        IncidentRequest(
+            incident_id="TEST-ATOMIC-WAKE",
+            severity="P1",
+            impact="Fixture",
+            primary_owner="engineer",
+            participants=["engineer", "qa-security"],
+            synthetic=True,
+        ),
+    )
+    assert set(seen) == {*cycle.children, cycle.summary}
+
+
+def test_blocked_wake_survives_reopen_and_subscription_retry(tmp_path: Path) -> None:
+    from contextlib import closing
+
+    from hermes_cli import kanban_db as native
+    from hermes_cli.kanban_db_connect import connect
+    from hermes_cli.kanban_db_notify import list_notify_subs, unseen_events_for_sub
+    from management.incident_wake import repair_incident_wakes
+
+    board = Board(tmp_path / "kanban.db")
+    cycle = start_incident(
+        board,
+        IncidentRequest(
+            incident_id="TEST-DURABLE-WAKE",
+            severity="P1",
+            impact="Fixture",
+            primary_owner="engineer",
+            participants=["engineer", "qa-security"],
+            synthetic=True,
+        ),
+    )
+    task_id = cycle.assignments["engineer"]
+    with closing(connect(db_path=board.path)) as conn:
+        assert native.block_task(conn, task_id, reason="Synthetic handoff unavailable")
+    repair_incident_wakes(Board(board.path), cycle.parent)
+    repair_incident_wakes(Board(board.path), cycle.parent)
+    with closing(connect(db_path=board.path)) as conn:
+        assert len(list_notify_subs(conn, task_id)) == 1
+        _, events = unseen_events_for_sub(
+            conn,
+            task_id=task_id,
+            platform="slack",
+            chat_id="C001",
+            thread_id="1789481511.334529",
+            kinds=["blocked"],
+        )
+        assert len(events) == 1
+        assert events[0].kind == "blocked"

@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 
 from .incident_notification import ensure_incident_thread, incident_lock
 from .incident_roles import create_investigations
+from .incident_wake import subscribe_verified_thread
 from .models import (
     ROLES,
     TOPICS,
@@ -173,6 +174,7 @@ def _start_incident(board: Board, request: IncidentRequest) -> Cycle:
         )
     )
     thread = ensure_incident_thread(board, parent, request)
+    subscribe_verified_thread(board, parent, thread)
     request = request.model_copy(update={"slack_thread": thread})
     assignments = create_investigations(board, request, parent)
     children = [assignments[role] for role in request.participants]
@@ -190,6 +192,8 @@ def _start_incident(board: Board, request: IncidentRequest) -> Cycle:
             priority=priority,
         )
     )
+    for task_id in [*children, summary]:
+        subscribe_verified_thread(board, task_id, thread)
     return Cycle(
         parent=parent,
         children=children,
