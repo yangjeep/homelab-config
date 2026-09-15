@@ -62,17 +62,17 @@ GitHub broker service is live. Its peer-UID policy issues fixed reduced scopes f
 | VERCEL_OPS_SERVICE | Vercel; trusted release service | ops / prj_AsYiiGeT0DaZewIv9WRrgYX8hGnA | Private document c66cgi4bnrnx6agfa6zgjgxvgy; vault only | Same rotation; authorized; own project 200, site 404; NOT DEPLOYED |
 | VERCEL_STOREFRONT_SERVICE | Vercel; trusted release service | storefront-alda / prj_5kjbAxTpJK7VEm8DWvZVQBaVMVXn | Private document pxkrsdff7helqrk3ailyy2rt44; vault only | Same rotation; authorized; own project 200, ops 404; NOT DEPLOYED |
 
-Slack uses seven distinct bot/app credential pairs. Each row maps the existing profile to its native Slack routing identity and the same profile's OpenRouter key above. Runtime variables are `SLACK_BOT_TOKEN` and `SLACK_APP_TOKEN` in `/var/lib/leaselab-company/profiles/<profile>/.env`; profile files remain private. Workspace is `T021CUR5KTP`; app tokens have Socket Mode `connections:write` capability. Rotate/revoke only the affected role's bot/app tokens in Slack, update that role's private environment and 1Password item, then verify its identity and gateway. Bootstrap is authorized; vault persistence for new specialist pairs is still BLOCKED on 1Password authorization.
+Slack uses seven distinct bot/app credential pairs. Each row maps the existing profile to its native Slack routing identity and the same profile's OpenRouter key above. Runtime variables are `SLACK_BOT_TOKEN` and `SLACK_APP_TOKEN` in `/var/lib/leaselab-company/profiles/<profile>/.env`; profile files remain private. Workspace is `T021CUR5KTP`; app tokens have Socket Mode `connections:write` capability. Rotate/revoke only the affected role's bot/app tokens in Slack, update that role's private environment and 1Password item, then verify its identity and gateway. All six specialist credential documents were saved through the unlocked 1Password desktop application after CLI authorization repeatedly timed out. Exact titles below identify documents in the personal Lucie Zhao’s Family account, Private vault; no unverified UUID is asserted.
 
 | Profile | App ID | Bot user ID | 1Password storage | Vault status |
 | --- | --- | --- | --- | --- |
 | chief-of-staff | A0C1ZBVK0A0 | U0C1TPNUT54 | Bot: u22cg74334qrejnxyj7xdjq4ti; app: ljyben6zao27f2be5stlnve6fi | Existing CoS items retained |
-| engineer | A0C1T1C1V7D | U0C1Z6C6ECA | Pending dedicated role item; UUID not yet available | BLOCKED — new pair not yet stored in 1Password |
-| qa-security | A0C1Z3H7J5Q | U0C1X7T11F0 | Pending dedicated role item; UUID not yet available | BLOCKED — new pair not yet stored in 1Password |
-| reviewer | A0C213V830R | U0C2TH9R00G | Pending dedicated role item; UUID not yet available | BLOCKED — new pair not yet stored in 1Password |
-| sre | A0C214H1ZK3 | U0C1X8MRNP8 | Pending dedicated role item; UUID not yet available | BLOCKED — new pair not yet stored in 1Password |
-| support | A0C1T05DNE7 | U0C1T0KN15H | Pending dedicated role item; UUID not yet available | BLOCKED — new pair not yet stored in 1Password |
-| growth | A0C2THSL11N | U0C1X95NKGW | Pending dedicated role item; UUID not yet available | BLOCKED — new pair not yet stored in 1Password |
+| engineer | A0C1T1C1V7D | U0C1Z6C6ECA | LeaseLab Hermes Slack Engineer | PASS — engineer-credentials.json; native UI confirmed creation in Private |
+| qa-security | A0C1Z3H7J5Q | U0C1X7T11F0 | LeaseLab Hermes Slack QA-Security | PASS — qa-security-credentials.json; native UI confirmed creation in Private |
+| reviewer | A0C213V830R | U0C2TH9R00G | LeaseLab Hermes Slack Reviewer | PASS — reviewer-credentials.json; native UI confirmed creation in Private |
+| sre | A0C214H1ZK3 | U0C1X8MRNP8 | LeaseLab Hermes Slack SRE | PASS — sre-credentials.json; native UI confirmed creation in Private |
+| support | A0C1T05DNE7 | U0C1T0KN15H | LeaseLab Hermes Slack Support | PASS — support-credentials.json; native UI confirmed creation in Private |
+| growth | A0C2THSL11N | U0C1X95NKGW | LeaseLab Hermes Slack Growth | PASS — growth-credentials.json; native UI confirmed creation in Private |
 
 The nonsecret root-managed `/etc/leaselab-company/slack-identities.json` supplies this mapping and the approved channel IDs, including `#incidents` (`C0C22U2AC76`). It contains no credentials. Role identity provisioning is not proof of end-to-end behavior; deployment validation records those results separately.
 
