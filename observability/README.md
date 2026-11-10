@@ -18,9 +18,15 @@ Live state after the 2026-11-10 run:
 
 ```
 00 · Overview          Homelab · Overview (homelab-home, org home dashboard, one screen)
-Homelab · 基础设施      file-provisioned boards (unchanged, names owned by files) + UniFi UDM cooling
-Homelab · 家庭与服务    file-provisioned boards (unchanged, names owned by files) + HA automation runs, Home · Temperature & Air
+10 · Infrastructure    file-provisioned boards (titles owned by files) + UniFi UDM cooling
+20 · Home & Services   file-provisioned boards (titles owned by files) + HA automation runs, Home · Temperature & Air
+90 · Alerts            Grafana alert rules (folder uid homelab-alerts)
 ```
+
+Folders 10, 20 and 90 were renamed in place; the uids are unchanged (`cfy08zmii2ubke`, `afy08zmx4zf9cb`, `homelab-alerts`).
+The provisioner kept its boards in the renamed folders. If the provider config resolves folders by title,
+a Grafana restart may recreate `Homelab · 基础设施` / `Homelab · 家庭与服务`. In that case, set the provider
+`folder:` to the new names on `.228`.
 
 17 boards are owned by **classic file provisioning** on the Grafana host, under
 `/var/lib/grafana/dashboards/homelab/<NN - 分类>/*.json`. Grafana re-applies their title and folder
