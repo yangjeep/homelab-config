@@ -18,7 +18,6 @@ Live state after the 2026-11-10 run:
 
 ```
 00 · Overview          Homelab · Overview (homelab-home, org home dashboard, one screen)
-99 · Archive          [old] Homelab · 总览 (old overview, superseded)
 Homelab · 基础设施      file-provisioned boards (unchanged, names owned by files) + UniFi UDM cooling
 Homelab · 家庭与服务    file-provisioned boards (unchanged, names owned by files) + HA automation runs, Home · Temperature & Air
 ```
@@ -56,7 +55,7 @@ Order matters. The Grafana script adds `P2 · Service HTTP probe down`. That rul
 
 ## Rollback
 
-- **Dashboards:** originals are in `99 · Archive`, and every save also lands in Grafana version history. To roll back, move a board out of the archive folder, or restore an earlier version.
+- **Dashboards:** the archived old overview (`homelab-overview-local`) and the archive folder were deleted on 2026-11-10. Restore them from Dashboards → Recently deleted while Grafana still retains them. Every other save is in Grafana version history.
 - **Home dashboard:** Administration → Default preferences.
 - **Alert rule:** delete `hl-service-probe-down`.
 - **Kuma:** Kuma 2 has no backup feature. `kuma/snapshot-before-2026-11-10.json` records the previous names, parents, retries and notifications. Restore from it on each monitor's edit page.
