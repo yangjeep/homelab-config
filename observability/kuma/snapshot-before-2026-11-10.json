@@ -1,0 +1,29 @@
+{
+  "note": "Uptime Kuma monitors before revamp (2026-11-10). notif: 1=Telegram Alert, 2=Hermes On-call SRE. Rollback reference.",
+  "monitors": [
+    {"id": 1, "name": "Home Assistance - NUC6", "parent": null, "retry": 3, "notif": [1, 2]},
+    {"id": 2, "name": "PVE-EC200A", "parent": null, "retry": 0, "notif": [1, 2]},
+    {"id": 4, "name": "Sense Sensor", "parent": null, "retry": 0, "notif": [1, 2]},
+    {"id": 5, "name": "PiAware Raspberry - Pi 3B", "parent": null, "retry": 2, "notif": [1, 2]},
+    {"id": 6, "name": "TrueNAS - Xeon E-2160", "parent": null, "retry": 0, "notif": [1, 2]},
+    {"id": 8, "name": "PiAware Radio Data ", "parent": null, "retry": 15, "notif": [1, 2]},
+    {"id": 9, "name": "PiAware MLAT Data ", "parent": null, "retry": 15, "notif": [2]},
+    {"id": 10, "name": "Prowlarr", "parent": null, "retry": 2, "notif": [1, 2]},
+    {"id": 11, "name": "Radarr", "parent": null, "retry": 2, "notif": [1, 2]},
+    {"id": 12, "name": "Sonarr", "parent": null, "retry": 2, "notif": [1, 2]},
+    {"id": 13, "name": "qBittorrent", "parent": null, "retry": 2, "notif": [1, 2]},
+    {"id": 14, "name": "Plex", "parent": null, "retry": 2, "notif": [1, 2]},
+    {"id": 15, "name": "Jellyfin", "parent": null, "retry": 2, "notif": [1, 2]},
+    {"id": 16, "name": "Power / UPS", "type": "group", "parent": null, "retry": 0, "notif": [1, 2]},
+    {"id": 17, "name": "UPS - NUT telemetry", "parent": 16, "retry": 2, "notif": [2]},
+    {"id": 18, "name": "UPS - Mains power", "parent": 16, "retry": 2, "notif": [2]},
+    {"id": 19, "name": "UPS - Monitoring clients", "parent": 16, "retry": 2, "notif": [2]},
+    {"id": 20, "name": "Caddy - HTTPS / Immich (CT 900)", "parent": null, "retry": 2, "notif": [1, 2]},
+    {"id": 21, "name": "Cloudflared - Private tunnel ready (CT 800)", "parent": null, "retry": 2, "notif": [1, 2]},
+    {"id": 22, "name": "LeaseLab · Production App", "parent": null, "retry": 2, "notif": [1, 2]},
+    {"id": 23, "name": "Homelab · Kuma HTTPS ingress", "url": "https://kuma-home.yangjeep.net/dashboard", "parent": null, "retry": 2, "notif": [1, 2]},
+    {"id": 24, "name": "LeaseLab · Vercel diagnostic alias", "parent": null, "retry": 2, "notif": [1, 2]},
+    {"id": 25, "name": "LeaseLab · Website", "parent": null, "retry": 2, "notif": [1, 2]},
+    {"id": 26, "name": "LeaseLab · Rent with Alda storefront", "parent": null, "retry": 2, "notif": [1, 2]}
+  ]
+}
