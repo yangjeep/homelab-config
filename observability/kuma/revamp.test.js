@@ -41,6 +41,12 @@ test('services covered by Grafana probes stop paging; watchdogs page', () => {
   assert.ok(wd.every((o) => o.group === '监控链' && o.monitor.notificationIDList[1] && o.monitor.notificationIDList[2]));
 });
 
+test('new monitors carry the JSON fields Kuma 2 requires on insert', () => {
+  const m = k.plan(live).find((o) => o.op === 'ensureMonitor').monitor;
+  assert.deepEqual([m.conditions, m.kafkaProducerBrokers, m.rabbitmqNodes], [[], [], []]);
+  assert.deepEqual(m.kafkaProducerSaslOptions, {});
+});
+
 test('self-monitor deleted; unknown ids ignored; input not mutated', () => {
   const snap = JSON.stringify(live);
   const ops = k.plan(live);

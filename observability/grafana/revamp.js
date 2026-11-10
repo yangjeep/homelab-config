@@ -137,7 +137,7 @@ function buildHome() {
       renameByName: { component: '子系统', signal: '信号', Value: '状态' } } }],
     fieldConfig: { defaults: { mappings: [{ type: 'value', options: {
       1: { text: '警告', color: 'yellow' }, 2: { text: '严重', color: 'red' }, 3: { text: '未知', color: 'blue' } } }],
-    custom: { cellOptions: { type: 'color-text' } } }, overrides: [] },
+    noValue: '全部正常', custom: { cellOptions: { type: 'color-text' } } }, overrides: [] },
     options: { showHeader: true, footer: { show: false } },
   };
   const bottom = [
@@ -223,17 +223,30 @@ async function run() {
     return r.json().catch(() => null);
   };
   const get = (uid) => api('GET', `/api/dashboards/uid/${uid}`);
-  const save = (dashboard, folder, message) =>
-    api('POST', '/api/dashboards/db', { dashboard, folderUid: FOLDERS[folder].uid, overwrite: true, message });
+  const ensured = new Set();
+  const save = async (dashboard, folder, message) => {
+    const f = FOLDERS[folder];
+    if (!ensured.has(f.uid) && !(await api('GET', `/api/folders/${f.uid}`))) await api('POST', '/api/folders', f);
+    ensured.add(f.uid);
+    return api('POST', '/api/dashboards/db', { dashboard, folderUid: f.uid, overwrite: true, message });
+  };
   const withVersion = async (dash) => {
     const prev = await get(dash.uid);
     return prev ? { ...dash, version: prev.dashboard.version } : dash;
   };
 
-  for (const f of Object.values(FOLDERS)) {
-    if (!(await api('GET', `/api/folders/${f.uid}`))) await api('POST', '/api/folders', f);
-  }
+  // Boards owned by classic file provisioning (/var/lib/grafana/dashboards/homelab/...)
+  // are re-applied every 60s, so API moves/retitles revert. Those must change in the files.
+  const fileManaged = async (uid) => {
+    const r = await fetch(`/apis/dashboard.grafana.app/v1beta1/namespaces/default/dashboards/${uid}`);
+    if (!r.ok) return false;
+    return (await r.json()).metadata?.annotations?.['grafana.app/managedBy'] === 'classic-file-provisioning';
+  };
+
   for (const m of MERGES) {
+    const managed = [];
+    for (const uid of m.sources) if (await fileManaged(uid)) managed.push(uid);
+    if (managed.length) { plan.push(`SKIP merge ${m.uid}: file-provisioned sources ${managed.join(',')}`); continue; }
     const srcs = [];
     for (const uid of m.sources) {
       const d = await get(uid);
@@ -248,12 +261,14 @@ async function run() {
     }
   }
   for (const [uid, title, folder] of KEEP) {
+    if (await fileManaged(uid)) { plan.push(`SKIP ${uid}: file-provisioned`); continue; }
     const d = await get(uid);
     if (!d) { plan.push(`WARN missing ${uid}`); continue; }
-    const tags = Array.from(new Set([...(d.dashboard.tags || []), 'homelab']));
+    const tags =Array.from(new Set([...(d.dashboard.tags || []), 'homelab']));
     await save({ ...d.dashboard, title, tags }, folder, 'revamp: retitle and move');
   }
   for (const uid of ARCHIVE_ONLY) {
+    if (await fileManaged(uid)) { plan.push(`SKIP ${uid}: file-provisioned`); continue; }
     const d = await get(uid);
     if (!d) continue;
     // Old boards lose the 'homelab' tag so they drop out of the navigation dropdown.

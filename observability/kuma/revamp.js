@@ -55,7 +55,9 @@ const RETRY_INTERVAL = 30;
 function httpMonitor(name, url) {
   return { type: 'http', name, url, method: 'GET', interval: 60, retryInterval: RETRY_INTERVAL,
     maxretries: MIN_RETRIES, timeout: 10, accepted_statuscodes: ['200-299'], maxredirects: 10,
-    notificationIDList: { ...PAGE }, ignoreTls: false, upsideDown: false, active: true };
+    notificationIDList: { ...PAGE }, ignoreTls: false, upsideDown: false, active: true,
+    // Kuma 2 rejects inserts without these (NOT NULL JSON columns).
+    conditions: [], kafkaProducerBrokers: [], kafkaProducerSaslOptions: {}, rabbitmqNodes: [] };
 }
 
 // Pure: live monitor list -> ordered ops. Groups first so later ops can resolve parents.

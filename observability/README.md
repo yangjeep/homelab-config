@@ -14,11 +14,27 @@ Each failure should page once. Before this change Kuma and Grafana both paged fo
 
 ## Grafana layout
 
+Live state after the 2026-11-10 run:
+
 ```
-00 · 总览          Homelab · 总览 (homelab-home, org home dashboard, one screen)
-10 · 子系统        网络 · 计算 · 家庭 (merged) · 入口 · 存储 · 供电 · 媒体 · 无线电 · 自动化
-90 · Meta 与日志   Meta · 监控链健康与覆盖 (merged) · AI · 日志
-99 · 归档          Old boards, unchanged except title prefix [旧] and tag archived
+00 · 总览              Homelab · 总览 (homelab-home, org home dashboard, one screen)
+99 · 归档              [旧] Homelab · 总览 (old overview, superseded)
+Homelab · 基础设施      file-provisioned boards (unchanged) + UniFi UDM cooling
+Homelab · 家庭与服务    file-provisioned boards (unchanged) + HA automation runs, environment
+```
+
+17 boards are owned by **classic file provisioning** on the Grafana host, under
+`/var/lib/grafana/dashboards/homelab/<NN - 分类>/*.json`. Grafana re-applies their title and folder
+every 60s, so API moves and retitles revert. The script detects these through the
+`grafana.app/managedBy` annotation and skips them, including any merge that has a file-managed source.
+
+Target layout (`MERGES` / `KEEP` in `grafana/revamp.js`) is applied in the provisioning files:
+
+```
+00 · 总览          Homelab · 总览
+10 · 子系统        网络 (WAN+UniFi+UDM) · 计算 (PVE+IPMI) · 家庭 (HA+自动化+环境) · 入口 · 存储 · 供电 · 媒体 · 无线电 · 自动化
+90 · Meta 与日志   Meta (Health+Coverage) · AI · 日志
+99 · 归档          NOC, Availability, old 总览
 ```
 
 The new overview uses one status tile per triage component and does not hard-code signal counts.
@@ -43,7 +59,7 @@ Order matters. The Grafana script adds `P2 · Service HTTP probe down`. That rul
 - **Dashboards:** originals are in `99 · 归档`, and every save also lands in Grafana version history. To roll back, move a board out of the archive folder, or restore an earlier version.
 - **Home dashboard:** Administration → Default preferences.
 - **Alert rule:** delete `hl-service-probe-down`.
-- **Kuma:** restore notifications on a monitor's edit page. Take a Kuma backup first (Settings → Backup).
+- **Kuma:** Kuma 2 has no backup feature. `kuma/snapshot-before-2026-11-10.json` records the previous names, parents, retries and notifications. Restore from it on each monitor's edit page.
 
 ## Tests
 
@@ -53,6 +69,9 @@ node --test observability/grafana/revamp.test.js observability/kuma/revamp.test.
 
 ## Known gaps
 
-- Dashboards are still stored in Grafana's DB, not file-provisioned. Nobody has shell access to `.228` from here. Next step: export to `grafana/dashboards/*.json` and switch to file provisioning.
+- Folder restructure and merges for the 17 file-provisioned boards are not applied. They need shell access to the Grafana host (`.228`). Steps there:
+  1. Move and merge the JSON files under `/var/lib/grafana/dashboards/homelab/`.
+  2. Remove NOC and Availability from the provisioned set.
+  3. Copy the provisioning tree into this repo so it becomes the source of truth.
 - The `homelab-triage` recording rules on `.216` are unchanged. The overview works around missing signals in queries.
 - The Kuma status page `homelab` is not rebuilt yet. Regroup it in the UI after the script runs.
