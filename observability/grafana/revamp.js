@@ -8,10 +8,10 @@
 const PROM = { type: 'prometheus', uid: 'homelab-prometheus' };
 
 const FOLDERS = {
-  home: { uid: 'hl-00-home', title: '00 · 总览' },
-  sub: { uid: 'hl-10-subsystems', title: '10 · 子系统' },
-  meta: { uid: 'hl-90-meta', title: '90 · Meta 与日志' },
-  archive: { uid: 'hl-99-archive', title: '99 · 归档（旧版，可回滚）' },
+  home: { uid: 'hl-00-home', title: '00 · Overview' },
+  sub: { uid: 'hl-10-subsystems', title: '10 · Subsystems' },
+  meta: { uid: 'hl-90-meta', title: '90 · Meta & Logs' },
+  archive: { uid: 'hl-99-archive', title: '99 · Archive (old, rollback)' },
 };
 
 // Triage components as emitted by the homelab-triage recording rules.
@@ -23,31 +23,31 @@ const COMPONENTS = [
   ['供电', 'UPS'],
   ['Pi', 'Raspberry Pi'],
   ['入口', 'Caddy / Cloudflared'],
-  ['监控', '监控链'],
+  ['监控', 'Monitoring'],
 ];
 
 // Merged subsystem boards: new uid -> title, folder, sources (each becomes a row).
 const MERGES = [
-  { uid: 'sub-network', title: '网络 · WAN 与 UniFi', folder: 'sub',
+  { uid: 'sub-network', title: 'Network · WAN & UniFi', folder: 'sub',
     sources: ['network-wan', 'network-unifi', 'unifi-udm-se-cooling'] },
-  { uid: 'sub-compute', title: '计算 · Proxmox 与 IPMI', folder: 'sub',
+  { uid: 'sub-compute', title: 'Compute · Proxmox & IPMI', folder: 'sub',
     sources: ['infra-proxmox', 'hardware-asrockrack-ipmi'] },
-  { uid: 'sub-home', title: '家庭 · Home Assistant 与环境', folder: 'sub',
+  { uid: 'sub-home', title: 'Home · Home Assistant & Environment', folder: 'sub',
     sources: ['home-assistant', 'ha-automation-runs-20261005', 'home-environment-20261005'] },
-  { uid: 'meta-observability', title: 'Meta · 监控链健康与覆盖', folder: 'meta',
+  { uid: 'meta-observability', title: 'Meta · Monitoring Health & Coverage', folder: 'meta',
     sources: ['observability-health', 'observability-coverage'] },
 ];
 
 // Kept boards: moved and retitled in place (uid unchanged so existing links work).
 const KEEP = [
-  ['edge-services', '入口 · Caddy 与 Cloudflared', 'sub'],
-  ['storage-truenas', '存储 · TrueNAS', 'sub'],
-  ['power-ups', '供电 · UPS', 'sub'],
-  ['media-pipeline', '媒体 · 下载与播放', 'sub'],
-  ['radio-piaware', '无线电 · PiAware ADS-B', 'sub'],
-  ['homelab-apps-script', '自动化 · Apps Script', 'sub'],
-  ['ai-control-plane', 'AI · Hermes 控制面', 'meta'],
-  ['logs-homelab', '日志 · 全局', 'meta'],
+  ['edge-services', 'Edge · Caddy & Cloudflared', 'sub'],
+  ['storage-truenas', 'Storage · TrueNAS', 'sub'],
+  ['power-ups', 'Power · UPS', 'sub'],
+  ['media-pipeline', 'Media · Downloads & Playback', 'sub'],
+  ['radio-piaware', 'Radio · PiAware ADS-B', 'sub'],
+  ['homelab-apps-script', 'Automation · Apps Script', 'sub'],
+  ['ai-control-plane', 'AI · Hermes Control Plane', 'meta'],
+  ['logs-homelab', 'Logs · Homelab', 'meta'],
 ];
 
 // Superseded overview-style boards, archived as-is.
@@ -55,7 +55,7 @@ const ARCHIVE_ONLY = ['homelab-overview-local', 'homelab-noc', 'availability-ser
 
 const DUP_LOKI_UID = 'bfuxd8vdf02kga';
 const HOME_UID = 'homelab-home';
-const NAV_LINK = { title: '子系统', type: 'dashboards', tags: ['homelab'], asDropdown: true, keepTime: true };
+const NAV_LINK = { title: 'Subsystems', type: 'dashboards', tags: ['homelab'], asDropdown: true, keepTime: true };
 
 // ---------- pure helpers (unit tested) ----------
 
@@ -79,10 +79,10 @@ function componentExpr(component) {
 const STATUS_MAPPINGS = [{
   type: 'value',
   options: {
-    0: { text: '正常', color: 'green', index: 0 },
-    1: { text: '警告', color: 'yellow', index: 1 },
-    2: { text: '未知 / 过期', color: 'blue', index: 2 },
-    3: { text: '严重', color: 'red', index: 3 },
+    0: { text: 'OK', color: 'green', index: 0 },
+    1: { text: 'Warning', color: 'yellow', index: 1 },
+    2: { text: 'Unknown / stale', color: 'blue', index: 2 },
+    3: { text: 'Critical', color: 'red', index: 3 },
   },
 }];
 
@@ -123,31 +123,31 @@ function buildHome() {
   const tiles = COMPONENTS.map(([c, title], i) =>
     stat(i + 1, title, componentExpr(c), { x: i * 3, y: 0, w: 3, h: 4 }));
   const alerts = {
-    id: 20, type: 'alertlist', title: '正在告警', gridPos: { x: 0, y: 4, w: 12, h: 9 },
+    id: 20, type: 'alertlist', title: 'Firing alerts', gridPos: { x: 0, y: 4, w: 12, h: 9 },
     options: { viewMode: 'list', groupMode: 'default', maxItems: 20, sortOrder: 1, dashboardAlerts: false,
       alertName: '', alertInstanceLabelFilter: '',
       stateFilter: { firing: true, pending: true, noData: true, error: true, normal: false } },
   };
   const abnormal = {
-    id: 21, type: 'table', title: '异常信号（分诊非正常项）', datasource: PROM,
+    id: 21, type: 'table', title: 'Abnormal triage signals', datasource: PROM,
     gridPos: { x: 12, y: 4, w: 12, h: 9 },
     targets: query('homelab_triage_state > 0', { format: 'table' }),
     transformations: [{ id: 'organize', options: {
       excludeByName: { Time: true, __name__: true, job: true, instance: true },
-      renameByName: { component: '子系统', signal: '信号', Value: '状态' } } }],
+      renameByName: { component: 'Component', signal: 'Signal', Value: 'State' } } }],
     fieldConfig: { defaults: { mappings: [{ type: 'value', options: {
-      1: { text: '警告', color: 'yellow' }, 2: { text: '严重', color: 'red' }, 3: { text: '未知', color: 'blue' } } }],
-    noValue: '全部正常', custom: { cellOptions: { type: 'color-text' } } }, overrides: [] },
+      1: { text: 'Warning', color: 'yellow' }, 2: { text: 'Critical', color: 'red' }, 3: { text: 'Unknown', color: 'blue' } } }],
+    noValue: 'All clear', custom: { cellOptions: { type: 'color-text' } } }, overrides: [] },
     options: { showHeader: true, footer: { show: false } },
   };
   const bottom = [
-    stat(22, '服务探测失败', 'count(probe_success == 0) or on() vector(0)', { x: 0, y: 13, w: 6, h: 4 }, COUNT_DEFAULTS),
-    stat(23, '采集目标掉线', 'count(up == 0) or on() vector(0)', { x: 6, y: 13, w: 6, h: 4 }, COUNT_DEFAULTS),
-    gauge(24, 'main 池已用', poolUsedExpr('main'), { x: 12, y: 13, w: 6, h: 4 }),
-    gauge(25, 'vm-app-nvme 池已用', poolUsedExpr('vm-app-nvme'), { x: 18, y: 13, w: 6, h: 4 }),
+    stat(22, 'Failed probes', 'count(probe_success == 0) or on() vector(0)', { x: 0, y: 13, w: 6, h: 4 }, COUNT_DEFAULTS),
+    stat(23, 'Scrape targets down', 'count(up == 0) or on() vector(0)', { x: 6, y: 13, w: 6, h: 4 }, COUNT_DEFAULTS),
+    gauge(24, 'main pool used', poolUsedExpr('main'), { x: 12, y: 13, w: 6, h: 4 }),
+    gauge(25, 'vm-app-nvme pool used', poolUsedExpr('vm-app-nvme'), { x: 18, y: 13, w: 6, h: 4 }),
   ];
   return {
-    uid: HOME_UID, title: 'Homelab · 总览', tags: ['homelab', 'home'], editable: true,
+    uid: HOME_UID, title: 'Homelab · Overview', tags: ['homelab', 'home'], editable: true,
     refresh: '1m', time: { from: 'now-6h', to: 'now' }, timezone: 'browser', schemaVersion: 39,
     links: [NAV_LINK, { title: 'Uptime Kuma', type: 'link', url: 'https://kuma-home.yangjeep.net/', targetBlank: true }],
     panels: [...tiles, alerts, abnormal, ...bottom],
@@ -193,8 +193,8 @@ function serviceProbeRule(folderUID) {
     uid: 'hl-service-probe-down', title: 'P2 · Service HTTP probe down', folderUID,
     ruleGroup: 'Homelab core', condition: 'C', for: '3m', noDataState: 'OK', execErrState: 'Error',
     labels: { severity: 'P2' },
-    annotations: { summary: '{{ $labels.instance }} 探测失败超过 3 分钟',
-      runbook: '先看 Kuma 同名 monitor 和对应子系统 dashboard' },
+    annotations: { summary: '{{ $labels.instance }} probe failing for 3m',
+      runbook: 'Check the matching Kuma monitor and subsystem dashboard' },
     data: [
       { refId: 'A', datasourceUid: PROM.uid, relativeTimeRange: { from: 600, to: 0 },
         model: { refId: 'A', instant: true,
@@ -206,7 +206,7 @@ function serviceProbeRule(folderUID) {
   };
 }
 
-const archivedTitle = (t) => `[旧] ${t.replace(/^\[旧\] /, '')}`;
+const archivedTitle = (t) => `[old] ${t.replace(/^\[(old|旧)\] /, '')}`;
 
 // ---------- side-effecting runner (browser only) ----------
 
@@ -253,7 +253,7 @@ async function run() {
       if (d) srcs.push(d.dashboard); else plan.push(`WARN missing source ${uid}`);
     }
     // Sources already archived by a previous run keep their original titles minus the prefix.
-    const clean = srcs.map((d) => ({ ...d, title: d.title.replace(/^\[旧\] /, '') }));
+    const clean = srcs.map((d) => ({ ...d, title: d.title.replace(/^\[(old|旧)\] /, '') }));
     await save(await withVersion(mergeDashboards(m, clean)), m.folder, 'revamp: merged board');
     for (const d of srcs) {
       await save({ ...d, title: archivedTitle(d.title), tags: (d.tags || []).filter((t) => t !== 'homelab').concat('archived') },

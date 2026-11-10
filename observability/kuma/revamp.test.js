@@ -22,7 +22,7 @@ test('typo and trailing spaces fixed, monitor put in group', () => {
   const ops = k.plan(live);
   const ha = ops.find((o) => o.op === 'edit' && o.id === 1);
   assert.equal(ha.patch.name, 'Home Assistant · NUC6');
-  assert.equal(ha.group, '家庭');
+  assert.equal(ha.group, 'Home');
   const mlat = ops.find((o) => o.op === 'edit' && o.id === 9);
   assert.equal(mlat.patch.name, 'PiAware · MLAT');
 });
@@ -38,7 +38,7 @@ test('services covered by Grafana probes stop paging; watchdogs page', () => {
   assert.deepEqual(ops.find((o) => o.op === 'edit' && o.id === 14).patch.notificationIDList, {});
   const wd = ops.filter((o) => o.op === 'ensureMonitor');
   assert.ok(wd.length >= 4);
-  assert.ok(wd.every((o) => o.group === '监控链' && o.monitor.notificationIDList[1] && o.monitor.notificationIDList[2]));
+  assert.ok(wd.every((o) => o.group === 'Monitoring' && o.monitor.notificationIDList[1] && o.monitor.notificationIDList[2]));
 });
 
 test('new monitors carry the JSON fields Kuma 2 requires on insert', () => {

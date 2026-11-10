@@ -17,10 +17,10 @@ Each failure should page once. Before this change Kuma and Grafana both paged fo
 Live state after the 2026-11-10 run:
 
 ```
-00 · 总览              Homelab · 总览 (homelab-home, org home dashboard, one screen)
-99 · 归档              [旧] Homelab · 总览 (old overview, superseded)
-Homelab · 基础设施      file-provisioned boards (unchanged) + UniFi UDM cooling
-Homelab · 家庭与服务    file-provisioned boards (unchanged) + HA automation runs, environment
+00 · Overview          Homelab · Overview (homelab-home, org home dashboard, one screen)
+99 · Archive          [old] Homelab · 总览 (old overview, superseded)
+Homelab · 基础设施      file-provisioned boards (unchanged, names owned by files) + UniFi UDM cooling
+Homelab · 家庭与服务    file-provisioned boards (unchanged, names owned by files) + HA automation runs, Home · Temperature & Air
 ```
 
 17 boards are owned by **classic file provisioning** on the Grafana host, under
@@ -31,15 +31,15 @@ every 60s, so API moves and retitles revert. The script detects these through th
 Target layout (`MERGES` / `KEEP` in `grafana/revamp.js`) is applied in the provisioning files:
 
 ```
-00 · 总览          Homelab · 总览
-10 · 子系统        网络 (WAN+UniFi+UDM) · 计算 (PVE+IPMI) · 家庭 (HA+自动化+环境) · 入口 · 存储 · 供电 · 媒体 · 无线电 · 自动化
-90 · Meta 与日志   Meta (Health+Coverage) · AI · 日志
-99 · 归档          NOC, Availability, old 总览
+00 · Overview        Homelab · Overview
+10 · Subsystems      Network (WAN+UniFi+UDM) · Compute (PVE+IPMI) · Home (HA+automation+environment) · Edge · Storage · Power · Media · Radio · Automation
+90 · Meta & Logs     Meta (Health+Coverage) · AI · Logs
+99 · Archive         NOC, Availability, old overview
 ```
 
 The new overview uses one status tile per triage component and does not hard-code signal counts.
-A signal that existed in the last 24h but is gone now shows as **未知 / 过期**.
-Severity order: 严重 > 未知 > 警告 > 正常.
+A signal that existed in the last 24h but is gone now shows as **Unknown / stale**.
+Severity order: Critical > Unknown > Warning > OK.
 
 Merged boards are built from their sources. Each source becomes a row, and text panels are dropped.
 Kept boards keep their uid, so links from Homepage and Hermes still work.
@@ -56,7 +56,7 @@ Order matters. The Grafana script adds `P2 · Service HTTP probe down`. That rul
 
 ## Rollback
 
-- **Dashboards:** originals are in `99 · 归档`, and every save also lands in Grafana version history. To roll back, move a board out of the archive folder, or restore an earlier version.
+- **Dashboards:** originals are in `99 · Archive`, and every save also lands in Grafana version history. To roll back, move a board out of the archive folder, or restore an earlier version.
 - **Home dashboard:** Administration → Default preferences.
 - **Alert rule:** delete `hl-service-probe-down`.
 - **Kuma:** Kuma 2 has no backup feature. `kuma/snapshot-before-2026-11-10.json` records the previous names, parents, retries and notifications. Restore from it on each monitor's edit page.
@@ -68,6 +68,8 @@ node --test observability/grafana/revamp.test.js observability/kuma/revamp.test.
 ```
 
 ## Known gaps
+
+- UI text is English. Exceptions: the 17 file-provisioned boards and their two folder names (owned by files on `.228`), and the triage `component` / `signal` label values (owned by the Prometheus rules on `.216`), which still show Chinese in the abnormal-signals table.
 
 - Folder restructure and merges for the 17 file-provisioned boards are not applied. They need shell access to the Grafana host (`.228`). Steps there:
   1. Move and merge the JSON files under `/var/lib/grafana/dashboards/homelab/`.

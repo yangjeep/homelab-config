@@ -12,41 +12,41 @@ const HERMES = 2;
 const PAGE = { [TELEGRAM]: true, [HERMES]: true };
 const SILENT = {};
 
-const GROUPS = ['入口', '计算存储', '媒体', '家庭', '无线电', '监控链', 'LeaseLab（待迁 cloud）'];
+const GROUPS = ['Edge', 'Compute & Storage', 'Media', 'Home', 'Radio', 'Monitoring', 'LeaseLab (moving to cloud)'];
 
 // id -> [new name, group, notifications]. Notifications: 'keep' | PAGE | SILENT.
 // SILENT = covered by a Grafana alert rule (blackbox probe, PVE/HA/TrueNAS rules).
 const SPEC = {
-  1: ['Home Assistant · NUC6', '家庭', SILENT],
-  2: ['PVE · EC200A', '计算存储', SILENT],
-  4: ['Sense · 能耗传感器', '家庭', 'keep'],
-  5: ['PiAware · Pi 3B', '无线电', 'keep'],
-  6: ['TrueNAS · Xeon E-2160', '计算存储', SILENT],
-  8: ['PiAware · Radio', '无线电', 'keep'],
-  9: ['PiAware · MLAT', '无线电', 'keep'],
-  10: ['Prowlarr', '媒体', SILENT],
-  11: ['Radarr', '媒体', SILENT],
-  12: ['Sonarr', '媒体', SILENT],
-  13: ['qBittorrent', '媒体', SILENT],
-  14: ['Plex', '媒体', SILENT],
-  15: ['Jellyfin', '媒体', SILENT],
-  16: ['供电 · UPS', null, 'keep'],
-  20: ['Caddy · Immich HTTPS (CT 900)', '入口', SILENT],
-  21: ['Cloudflared · 隧道就绪 (CT 800)', '入口', SILENT],
-  22: ['LeaseLab · Production App', 'LeaseLab（待迁 cloud）', 'keep'],
-  24: ['LeaseLab · Vercel diagnostic alias', 'LeaseLab（待迁 cloud）', 'keep'],
-  25: ['LeaseLab · Website', 'LeaseLab（待迁 cloud）', 'keep'],
-  26: ['LeaseLab · Rent with Alda storefront', 'LeaseLab（待迁 cloud）', 'keep'],
+  1: ['Home Assistant · NUC6', 'Home', SILENT],
+  2: ['PVE · EC200A', 'Compute & Storage', SILENT],
+  4: ['Sense · Energy sensor', 'Home', 'keep'],
+  5: ['PiAware · Pi 3B', 'Radio', 'keep'],
+  6: ['TrueNAS · Xeon E-2160', 'Compute & Storage', SILENT],
+  8: ['PiAware · Radio', 'Radio', 'keep'],
+  9: ['PiAware · MLAT', 'Radio', 'keep'],
+  10: ['Prowlarr', 'Media', SILENT],
+  11: ['Radarr', 'Media', SILENT],
+  12: ['Sonarr', 'Media', SILENT],
+  13: ['qBittorrent', 'Media', SILENT],
+  14: ['Plex', 'Media', SILENT],
+  15: ['Jellyfin', 'Media', SILENT],
+  16: ['Power · UPS', null, 'keep'],
+  20: ['Caddy · Immich HTTPS (CT 900)', 'Edge', SILENT],
+  21: ['Cloudflared · Tunnel ready (CT 800)', 'Edge', SILENT],
+  22: ['LeaseLab · Production App', 'LeaseLab (moving to cloud)', 'keep'],
+  24: ['LeaseLab · Vercel diagnostic alias', 'LeaseLab (moving to cloud)', 'keep'],
+  25: ['LeaseLab · Website', 'LeaseLab (moving to cloud)', 'keep'],
+  26: ['LeaseLab · Rent with Alda storefront', 'LeaseLab (moving to cloud)', 'keep'],
 };
 
 // Kuma probing itself is meaningless; external probing belongs to the cloud phase.
 const DELETE = [23];
 
 const WATCHDOGS = [
-  ['监控链 · Prometheus', 'http://192.168.253.216:9090/-/healthy'],
-  ['监控链 · Grafana', 'http://192.168.253.228:3000/api/health'],
-  ['监控链 · Loki', 'http://192.168.253.218:3100/ready'],
-  ['监控链 · InfluxDB', 'http://192.168.253.235:8086/health'],
+  ['Monitoring · Prometheus', 'http://192.168.253.216:9090/-/healthy'],
+  ['Monitoring · Grafana', 'http://192.168.253.228:3000/api/health'],
+  ['Monitoring · Loki', 'http://192.168.253.218:3100/ready'],
+  ['Monitoring · InfluxDB', 'http://192.168.253.235:8086/health'],
 ];
 
 const MIN_RETRIES = 2;
@@ -77,7 +77,7 @@ function plan(monitors) {
     ops.push({ op: 'edit', id: m.id, group, patch });
   }
   for (const [name, url] of WATCHDOGS) {
-    ops.push({ op: 'ensureMonitor', group: '监控链', monitor: httpMonitor(name, url) });
+    ops.push({ op: 'ensureMonitor', group: 'Monitoring', monitor: httpMonitor(name, url) });
   }
   return ops;
 }
