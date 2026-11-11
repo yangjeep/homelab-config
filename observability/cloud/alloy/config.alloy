@@ -1,0 +1,45 @@
+// Alloy on a dedicated PVE LXC: federate an allowlist from local Prometheus and
+// remote_write it to Grafana Cloud. Keeps cloud usage small (Free tier ~10k series)
+// and gives cloud a copy of home state that survives a home outage.
+//
+// Install: community-scripts ct/debian.sh, then Grafana apt repo `apt install alloy`.
+// Secrets: /etc/default/alloy sets GC_PROM_TOKEN (Cloud access policy, metrics:write only).
+
+prometheus.scrape "homelab_federate" {
+  targets         = [{"__address__" = "192.168.253.216:9090"}]
+  metrics_path    = "/federate"
+  scrape_interval = "60s"
+  honor_labels    = true
+  params          = {
+    "match[]" = [
+      "up",
+      "probe_success",
+      "probe_duration_seconds",
+      "homelab_triage_state",
+      "ALERTS{alertstate=\"firing\"}",
+      "node_load1",
+      "node_filesystem_avail_bytes{mountpoint=\"/\"}",
+      "node_memory_MemAvailable_bytes",
+    ],
+  }
+  forward_to = [prometheus.relabel.tag_source.receiver]
+}
+
+// Tag every federated series so cloud rules can tell them apart from Synthetics.
+prometheus.relabel "tag_source" {
+  rule {
+    target_label = "source"
+    replacement  = "homelab-federate"
+  }
+  forward_to = [prometheus.remote_write.grafana_cloud.receiver]
+}
+
+prometheus.remote_write "grafana_cloud" {
+  endpoint {
+    url = "https://prometheus-prod-32-prod-ca-east-0.grafana.net/api/prom/push"
+    basic_auth {
+      username = "1993226"
+      password = sys.env("GC_PROM_TOKEN")
+    }
+  }
+}

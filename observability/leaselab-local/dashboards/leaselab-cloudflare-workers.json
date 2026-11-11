@@ -1,0 +1,176 @@
+{
+  "description": "Native Cloudflare Workers Analytics queried via Infinity, scoped to six actual LeaseLab Workers. Data covers the selected range. Workers with no invocations may have no row; absence is not a health verdict. CPU is converted from API microseconds to milliseconds and is not wall duration. No request content or full logs are ingested.",
+  "editable": true,
+  "id": null,
+  "panels": [
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "leaselab-cloudflare-newacct"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Worker"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 240
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 180
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Requests"
+          }
+        ]
+      },
+      "targets": [
+        {
+          "columns": [
+            {
+              "selector": "worker",
+              "text": "Worker",
+              "type": "string"
+            },
+            {
+              "selector": "environment",
+              "text": "Environment",
+              "type": "string"
+            },
+            {
+              "selector": "status",
+              "text": "Status",
+              "type": "string"
+            },
+            {
+              "selector": "requests",
+              "text": "Requests",
+              "type": "number"
+            },
+            {
+              "selector": "errors",
+              "text": "Errors",
+              "type": "number"
+            },
+            {
+              "selector": "subrequests",
+              "text": "Subrequests",
+              "type": "number"
+            },
+            {
+              "selector": "cpu_ms_p50",
+              "text": "CPU P50 (ms)",
+              "type": "number"
+            },
+            {
+              "selector": "cpu_ms_p99",
+              "text": "CPU P99 (ms)",
+              "type": "number"
+            }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare-newacct"
+          },
+          "format": "table",
+          "parser": "jq-backend",
+          "refId": "A",
+          "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare Workers Analytics returned an error\") else [.data.viewer.accounts[0].workersInvocationsAdaptive[] | {worker:.dimensions.scriptName,environment:(if (.dimensions.scriptName|endswith(\"-preview\")) then \"preview\" else \"production\" end),status:.dimensions.status,requests:.sum.requests,errors:.sum.errors,subrequests:.sum.subrequests,cpu_ms_p50:(.quantiles.cpuTimeP50/1000),cpu_ms_p99:(.quantiles.cpuTimeP99/1000)}] end",
+          "source": "url",
+          "type": "json",
+          "url": "https://api.cloudflare.com/client/v4/graphql",
+          "url_options": {
+            "body_content_type": "application/json",
+            "body_type": "raw",
+            "data": "{\"query\":\"query Workers($account: string!, $start: string!, $end: string!) {\\n  viewer {\\n    accounts(filter: {accountTag: $account}) {\\n      workersInvocationsAdaptive(\\n        limit: 500\\n        filter: {\\n          datetime_geq: $start\\n          datetime_leq: $end\\n          scriptName_in: [\\n            \\\"leaselab-worker\\\"\\n            \\\"leaselab-worker-preview\\\"\\n            \\\"leaselab-workflows\\\"\\n            \\\"leaselab-workflows-preview\\\"\\n            \\\"leaselab-email-worker\\\"\\n            \\\"leaselab-email-worker-preview\\\"\\n          ]\\n        }\\n      ) {\\n        sum { requests errors subrequests }\\n        quantiles { cpuTimeP50 cpuTimeP99 }\\n        dimensions { scriptName status }\\n      }\\n    }\\n  }\\n}\\n\",\"variables\":{\"account\":\"cb1832646d5413d5df781c30f2a7ccc4\",\"start\":\"${__timeFrom:date:iso}\",\"end\":\"${__timeTo:date:iso}\"}}",
+            "method": "POST"
+          }
+        }
+      ],
+      "title": "Worker requests, outcomes and CPU by environment",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "CPU P50 (ms)": 6,
+              "CPU P99 (ms)": 7,
+              "Environment": 1,
+              "Errors": 3,
+              "Requests": 2,
+              "Status": 4,
+              "Subrequests": 5,
+              "Worker": 0
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 12
+      },
+      "id": 2,
+      "options": {
+        "content": "Six Workers are included: API, Workflows and Email, each with production and preview variants. No row means no observed invocation in this time window, not confirmed availability. Website-zone WAF/CDN metrics are not included: the existing Free zones do not satisfy the official zone integration prerequisites.",
+        "mode": "markdown"
+      },
+      "title": "Coverage",
+      "type": "text"
+    }
+  ],
+  "refresh": "5m",
+  "schemaVersion": 40,
+  "tags": [
+    "leaselab",
+    "cloudflare"
+  ],
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "title": "LeaseLab - Cloudflare Workers",
+  "uid": "leaselab-cloudflare-workers"
+}

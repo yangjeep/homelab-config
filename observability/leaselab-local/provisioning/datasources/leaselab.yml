@@ -1,0 +1,18 @@
+# LeaseLab datasources for local Grafana (.228). Same uids as Grafana Cloud so the
+# exported dashboards import unchanged. Search Console (`leaselab-gsc`, board `leaselab-seo`)
+# is cloud-only by choice. Secrets are read from files on the Grafana
+# LXC (root:grafana 0640), never stored here:
+#   /etc/grafana/secrets/leaselab-cf-token      Cloudflare account token grafana-leaselab-analytics-ro (cb18…), shared with cloud
+apiVersion: 1
+
+datasources:
+  - name: LeaseLab Cloudflare (new account cb18…)
+    uid: leaselab-cloudflare-newacct
+    type: yesoreyeram-infinity-datasource
+    editable: false
+    jsonData:
+      auth_method: bearerToken
+      allowedHosts: [https://api.cloudflare.com]
+      timeout: 20
+    secureJsonData:
+      bearerToken: $__file{/etc/grafana/secrets/leaselab-cf-token}

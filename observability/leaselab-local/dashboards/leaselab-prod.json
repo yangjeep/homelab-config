@@ -1,0 +1,1898 @@
+{
+  "description": "LeaseLab PROD only: leaselab-worker, leaselab-workflows, D1 leaselab-db (3fa1abc2…), api.leaselab.io + img.leaselab.io (prod R2), prod Kuma monitors. Preview and Alda have separate dashboards. Owner: SRE.",
+  "id": null,
+  "links": [
+    {
+      "title": "LeaseLab Preview",
+      "type": "link",
+      "url": "/d/leaselab-preview/leaselab-preview"
+    },
+    {
+      "title": "Rent with Alda",
+      "type": "link",
+      "url": "/d/rentwithalda/rent-with-alda"
+    },
+    {
+      "targetBlank": true,
+      "title": "UptimeRobot · Public monitors",
+      "type": "link",
+      "url": "https://dashboard.uptimerobot.com/monitors"
+    }
+  ],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 27,
+      "panels": [],
+      "title": "生产入口 · App 和 API",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "leaselab-cloudflare-newacct"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 1
+      },
+      "id": 17,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "columns": [
+            {
+              "selector": "v",
+              "text": "api.leaselab.io requests (range)",
+              "type": "number"
+            }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare-newacct"
+          },
+          "format": "table",
+          "parser": "jq-backend",
+          "refId": "A",
+          "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare GraphQL error: \" + (.errors[0].message)) else ([.data.viewer.zones[].httpRequestsAdaptiveGroups[]] as $r | [{v: ($r|map(.count)|add // 0)}]) end",
+          "source": "url",
+          "type": "json",
+          "url": "https://api.cloudflare.com/client/v4/graphql",
+          "url_options": {
+            "body_content_type": "application/json",
+            "body_type": "raw",
+            "data": "{\"query\": \"query($z:[String!],$s:Time!,$e:Time!){viewer{zones(filter:{zoneTag_in:$z}){httpRequestsAdaptiveGroups(limit:1000,filter:{requestSource:\\\"eyeball\\\",datetime_geq:$s,datetime_leq:$e,clientRequestHTTPHost_in:[\\\"api.leaselab.io\\\",\\\"api.leaselab.ai\\\"]}){count dimensions{edgeResponseStatus}}}}}\", \"variables\": {\"z\": [\"57a6383c18d1b79bf8c1d8d36c026b26\", \"c023e5909e29450e87f91d723fa9d796\"], \"s\": \"${__timeFrom:date:iso}\", \"e\": \"${__timeTo:date:iso}\"}}",
+            "method": "POST"
+          }
+        }
+      ],
+      "title": "api.leaselab.io + .ai requests (range)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "leaselab-cloudflare-newacct"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 1
+      },
+      "id": 18,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "columns": [
+            {
+              "selector": "v",
+              "text": "api.leaselab.io 5xx (range)",
+              "type": "number"
+            }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare-newacct"
+          },
+          "format": "table",
+          "parser": "jq-backend",
+          "refId": "A",
+          "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare GraphQL error: \" + (.errors[0].message)) else ([.data.viewer.zones[].httpRequestsAdaptiveGroups[]] as $r | [{v: ($r|map(select(.dimensions.edgeResponseStatus>=500).count)|add // 0)}]) end",
+          "source": "url",
+          "type": "json",
+          "url": "https://api.cloudflare.com/client/v4/graphql",
+          "url_options": {
+            "body_content_type": "application/json",
+            "body_type": "raw",
+            "data": "{\"query\": \"query($z:[String!],$s:Time!,$e:Time!){viewer{zones(filter:{zoneTag_in:$z}){httpRequestsAdaptiveGroups(limit:1000,filter:{requestSource:\\\"eyeball\\\",datetime_geq:$s,datetime_leq:$e,clientRequestHTTPHost_in:[\\\"api.leaselab.io\\\",\\\"api.leaselab.ai\\\"]}){count dimensions{edgeResponseStatus}}}}}\", \"variables\": {\"z\": [\"57a6383c18d1b79bf8c1d8d36c026b26\", \"c023e5909e29450e87f91d723fa9d796\"], \"s\": \"${__timeFrom:date:iso}\", \"e\": \"${__timeTo:date:iso}\"}}",
+            "method": "POST"
+          }
+        }
+      ],
+      "title": "api.leaselab.io + .ai 5xx (range)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "leaselab-cloudflare-newacct"
+      },
+      "description": "Edge response status >=500 / all requests (includes scanner/bot traffic).",
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 1
+      },
+      "id": 19,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "columns": [
+            {
+              "selector": "v",
+              "text": "api.leaselab.io 5xx rate (range)",
+              "type": "number"
+            }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare-newacct"
+          },
+          "format": "table",
+          "parser": "jq-backend",
+          "refId": "A",
+          "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare GraphQL error: \" + (.errors[0].message)) else ([.data.viewer.zones[].httpRequestsAdaptiveGroups[]] as $r | [{v: (if ($r|map(.count)|add // 0)>0 then ($r|map(select(.dimensions.edgeResponseStatus>=500).count)|add // 0)/($r|map(.count)|add // 0)*100 else 0 end)}]) end",
+          "source": "url",
+          "type": "json",
+          "url": "https://api.cloudflare.com/client/v4/graphql",
+          "url_options": {
+            "body_content_type": "application/json",
+            "body_type": "raw",
+            "data": "{\"query\": \"query($z:[String!],$s:Time!,$e:Time!){viewer{zones(filter:{zoneTag_in:$z}){httpRequestsAdaptiveGroups(limit:1000,filter:{requestSource:\\\"eyeball\\\",datetime_geq:$s,datetime_leq:$e,clientRequestHTTPHost_in:[\\\"api.leaselab.io\\\",\\\"api.leaselab.ai\\\"]}){count dimensions{edgeResponseStatus}}}}}\", \"variables\": {\"z\": [\"57a6383c18d1b79bf8c1d8d36c026b26\", \"c023e5909e29450e87f91d723fa9d796\"], \"s\": \"${__timeFrom:date:iso}\", \"e\": \"${__timeTo:date:iso}\"}}",
+            "method": "POST"
+          }
+        }
+      ],
+      "title": "api.leaselab.io + .ai 5xx rate (range)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "leaselab-cloudflare-newacct"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 1
+      },
+      "id": 20,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "columns": [
+            {
+              "selector": "v",
+              "text": "api.leaselab.io 4xx (range)",
+              "type": "number"
+            }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare-newacct"
+          },
+          "format": "table",
+          "parser": "jq-backend",
+          "refId": "A",
+          "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare GraphQL error: \" + (.errors[0].message)) else ([.data.viewer.zones[].httpRequestsAdaptiveGroups[]] as $r | [{v: ($r|map(select(.dimensions.edgeResponseStatus>=400 and .dimensions.edgeResponseStatus<500).count)|add // 0)}]) end",
+          "source": "url",
+          "type": "json",
+          "url": "https://api.cloudflare.com/client/v4/graphql",
+          "url_options": {
+            "body_content_type": "application/json",
+            "body_type": "raw",
+            "data": "{\"query\": \"query($z:[String!],$s:Time!,$e:Time!){viewer{zones(filter:{zoneTag_in:$z}){httpRequestsAdaptiveGroups(limit:1000,filter:{requestSource:\\\"eyeball\\\",datetime_geq:$s,datetime_leq:$e,clientRequestHTTPHost_in:[\\\"api.leaselab.io\\\",\\\"api.leaselab.ai\\\"]}){count dimensions{edgeResponseStatus}}}}}\", \"variables\": {\"z\": [\"57a6383c18d1b79bf8c1d8d36c026b26\", \"c023e5909e29450e87f91d723fa9d796\"], \"s\": \"${__timeFrom:date:iso}\", \"e\": \"${__timeTo:date:iso}\"}}",
+            "method": "POST"
+          }
+        }
+      ],
+      "title": "api.leaselab.io + .ai 4xx (range)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "leaselab-cloudflare-newacct"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 5
+      },
+      "id": 25,
+      "options": {},
+      "targets": [
+        {
+          "columns": [
+            {
+              "selector": "time",
+              "text": "Time",
+              "type": "timestamp"
+            },
+            {
+              "selector": "requests",
+              "text": "Requests",
+              "type": "number"
+            },
+            {
+              "selector": "errors",
+              "text": "Edge 5xx",
+              "type": "number"
+            }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare-newacct"
+          },
+          "format": "table",
+          "parser": "jq-backend",
+          "refId": "A",
+          "root_selector": "if ((.errors // []) | length) > 0 then error(.errors[0].message) else ([.data.viewer.zones[].httpRequestsAdaptiveGroups[]] | group_by(.dimensions.datetimeFiveMinutes) | map({time:.[0].dimensions.datetimeFiveMinutes, requests:(map(.count)|add),errors:(map(select(.dimensions.edgeResponseStatus>=500).count)|add // 0)})) end",
+          "source": "url",
+          "type": "json",
+          "url": "https://api.cloudflare.com/client/v4/graphql",
+          "url_options": {
+            "body_content_type": "application/json",
+            "body_type": "raw",
+            "data": "{\"query\":\"query($z:[String!],$s:Time!,$e:Time!){viewer{zones(filter:{zoneTag_in:$z}){httpRequestsAdaptiveGroups(limit:10000,orderBy:[datetimeFiveMinutes_ASC],filter:{requestSource:\\\"eyeball\\\",datetime_geq:$s,datetime_leq:$e,clientRequestHTTPHost_in:[\\\"app.leaselab.ai\\\"]}){count dimensions{datetimeFiveMinutes edgeResponseStatus}}}}}\",\"variables\":{\"z\":[\"57a6383c18d1b79bf8c1d8d36c026b26\",\"c023e5909e29450e87f91d723fa9d796\"],\"s\":\"${__timeFrom:date:iso}\",\"e\":\"${__timeTo:date:iso}\"}}",
+            "method": "POST"
+          }
+        }
+      ],
+      "title": "LeaseLab App · Requests and edge 5xx per 5m",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "leaselab-cloudflare-newacct"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 5
+      },
+      "id": 26,
+      "options": {},
+      "targets": [
+        {
+          "columns": [
+            {
+              "selector": "colo",
+              "text": "Cloudflare colo",
+              "type": "string"
+            },
+            {
+              "selector": "requests",
+              "text": "Requests",
+              "type": "number"
+            }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare-newacct"
+          },
+          "format": "table",
+          "parser": "jq-backend",
+          "refId": "A",
+          "root_selector": "if ((.errors // []) | length) > 0 then error(.errors[0].message) else ([.data.viewer.zones[].httpRequestsAdaptiveGroups[]] | group_by(.dimensions.coloCode) | map({colo:.[0].dimensions.coloCode,requests:(map(.count)|add)}) | sort_by(-.requests)) end",
+          "source": "url",
+          "type": "json",
+          "url": "https://api.cloudflare.com/client/v4/graphql",
+          "url_options": {
+            "body_content_type": "application/json",
+            "body_type": "raw",
+            "data": "{\"query\":\"query($z:[String!],$s:Time!,$e:Time!){viewer{zones(filter:{zoneTag_in:$z}){httpRequestsAdaptiveGroups(limit:10000,orderBy:[count_DESC],filter:{requestSource:\\\"eyeball\\\",datetime_geq:$s,datetime_leq:$e,clientRequestHTTPHost_in:[\\\"app.leaselab.ai\\\",\\\"api.leaselab.io\\\",\\\"api.leaselab.ai\\\"]}){count dimensions{coloCode}}}}}\",\"variables\":{\"z\":[\"57a6383c18d1b79bf8c1d8d36c026b26\",\"c023e5909e29450e87f91d723fa9d796\"],\"s\":\"${__timeFrom:date:iso}\",\"e\":\"${__timeTo:date:iso}\"}}",
+            "method": "POST"
+          }
+        }
+      ],
+      "title": "LeaseLab production · Requests by Cloudflare colo",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "leaselab-cloudflare-newacct"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "stacking": {
+              "mode": "normal"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "5xx"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "4xx"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "2xx"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 13
+      },
+      "id": 21,
+      "targets": [
+        {
+          "columns": [
+            {
+              "selector": "time",
+              "text": "time",
+              "type": "timestamp"
+            },
+            {
+              "selector": "s2xx",
+              "text": "2xx",
+              "type": "number"
+            },
+            {
+              "selector": "s3xx",
+              "text": "3xx",
+              "type": "number"
+            },
+            {
+              "selector": "s4xx",
+              "text": "4xx",
+              "type": "number"
+            },
+            {
+              "selector": "s5xx",
+              "text": "5xx",
+              "type": "number"
+            }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare-newacct"
+          },
+          "format": "table",
+          "parser": "jq-backend",
+          "refId": "A",
+          "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare GraphQL error: \" + (.errors[0].message)) else ([.data.viewer.zones[].httpRequestsAdaptiveGroups[]] | group_by(.dimensions.datetimeFiveMinutes) | map({time: .[0].dimensions.datetimeFiveMinutes, s2xx: (map(select(.dimensions.edgeResponseStatus<300).count)|add // 0), s3xx: (map(select(.dimensions.edgeResponseStatus>=300 and .dimensions.edgeResponseStatus<400).count)|add // 0), s4xx: (map(select(.dimensions.edgeResponseStatus>=400 and .dimensions.edgeResponseStatus<500).count)|add // 0), s5xx: (map(select(.dimensions.edgeResponseStatus>=500).count)|add // 0)})) end",
+          "source": "url",
+          "type": "json",
+          "url": "https://api.cloudflare.com/client/v4/graphql",
+          "url_options": {
+            "body_content_type": "application/json",
+            "body_type": "raw",
+            "data": "{\"query\": \"query($z:[String!],$s:Time!,$e:Time!){viewer{zones(filter:{zoneTag_in:$z}){httpRequestsAdaptiveGroups(limit:10000,orderBy:[datetimeFiveMinutes_ASC],filter:{requestSource:\\\"eyeball\\\",datetime_geq:$s,datetime_leq:$e,clientRequestHTTPHost_in:[\\\"api.leaselab.io\\\",\\\"api.leaselab.ai\\\"]}){count dimensions{datetimeFiveMinutes edgeResponseStatus}}}}}\", \"variables\": {\"z\": [\"57a6383c18d1b79bf8c1d8d36c026b26\", \"c023e5909e29450e87f91d723fa9d796\"], \"s\": \"${__timeFrom:date:iso}\", \"e\": \"${__timeTo:date:iso}\"}}",
+            "method": "POST"
+          }
+        }
+      ],
+      "title": "api.leaselab.io + .ai requests by status class per 5m",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "leaselab-cloudflare-newacct"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "points",
+            "pointSize": 5,
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 13
+      },
+      "id": 22,
+      "targets": [
+        {
+          "columns": [
+            {
+              "selector": "time",
+              "text": "time",
+              "type": "timestamp"
+            },
+            {
+              "selector": "rate",
+              "text": "5xx %",
+              "type": "number"
+            }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare-newacct"
+          },
+          "format": "table",
+          "parser": "jq-backend",
+          "refId": "A",
+          "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare GraphQL error: \" + (.errors[0].message)) else ([.data.viewer.zones[].httpRequestsAdaptiveGroups[]] | group_by(.dimensions.datetimeFiveMinutes) | map({time: .[0].dimensions.datetimeFiveMinutes, t: (map(.count)|add), f: (map(select(.dimensions.edgeResponseStatus>=500).count)|add // 0)}) | map({time, rate: (.f/.t*100)})) end",
+          "source": "url",
+          "type": "json",
+          "url": "https://api.cloudflare.com/client/v4/graphql",
+          "url_options": {
+            "body_content_type": "application/json",
+            "body_type": "raw",
+            "data": "{\"query\": \"query($z:[String!],$s:Time!,$e:Time!){viewer{zones(filter:{zoneTag_in:$z}){httpRequestsAdaptiveGroups(limit:10000,orderBy:[datetimeFiveMinutes_ASC],filter:{requestSource:\\\"eyeball\\\",datetime_geq:$s,datetime_leq:$e,clientRequestHTTPHost_in:[\\\"api.leaselab.io\\\",\\\"api.leaselab.ai\\\"]}){count dimensions{datetimeFiveMinutes edgeResponseStatus}}}}}\", \"variables\": {\"z\": [\"57a6383c18d1b79bf8c1d8d36c026b26\", \"c023e5909e29450e87f91d723fa9d796\"], \"s\": \"${__timeFrom:date:iso}\", \"e\": \"${__timeTo:date:iso}\"}}",
+            "method": "POST"
+          }
+        }
+      ],
+      "title": "api.leaselab.io + .ai 5xx rate % per 5m",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "leaselab-cloudflare-newacct"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "5xx %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 21
+      },
+      "id": 23,
+      "targets": [
+        {
+          "columns": [
+            {
+              "selector": "host",
+              "text": "Host",
+              "type": "string"
+            },
+            {
+              "selector": "total",
+              "text": "Total",
+              "type": "number"
+            },
+            {
+              "selector": "s2xx",
+              "text": "2xx",
+              "type": "number"
+            },
+            {
+              "selector": "s3xx",
+              "text": "3xx",
+              "type": "number"
+            },
+            {
+              "selector": "s4xx",
+              "text": "4xx",
+              "type": "number"
+            },
+            {
+              "selector": "s5xx",
+              "text": "5xx",
+              "type": "number"
+            },
+            {
+              "selector": "rate5xx",
+              "text": "5xx %",
+              "type": "number"
+            }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare-newacct"
+          },
+          "format": "table",
+          "parser": "jq-backend",
+          "refId": "A",
+          "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare GraphQL error: \" + (.errors[0].message)) else ([.data.viewer.zones[].httpRequestsAdaptiveGroups[]] | group_by(.dimensions.clientRequestHTTPHost) | map({host: .[0].dimensions.clientRequestHTTPHost, total: (map(.count)|add), s2xx: (map(select(.dimensions.edgeResponseStatus<300).count)|add // 0), s3xx: (map(select(.dimensions.edgeResponseStatus>=300 and .dimensions.edgeResponseStatus<400).count)|add // 0), s4xx: (map(select(.dimensions.edgeResponseStatus>=400 and .dimensions.edgeResponseStatus<500).count)|add // 0), s5xx: (map(select(.dimensions.edgeResponseStatus>=500).count)|add // 0)}) | map(. + {rate5xx: (.s5xx/.total*100)}) | sort_by(-.total)) end",
+          "source": "url",
+          "type": "json",
+          "url": "https://api.cloudflare.com/client/v4/graphql",
+          "url_options": {
+            "body_content_type": "application/json",
+            "body_type": "raw",
+            "data": "{\"query\": \"query($z:[String!],$s:Time!,$e:Time!){viewer{zones(filter:{zoneTag_in:$z}){httpRequestsAdaptiveGroups(limit:2000,filter:{requestSource:\\\"eyeball\\\",clientRequestHTTPHost_in:[\\\"api.leaselab.io\\\",\\\"img.leaselab.io\\\",\\\"api.leaselab.ai\\\",\\\"img.leaselab.ai\\\"],datetime_geq:$s,datetime_leq:$e}){count dimensions{clientRequestHTTPHost edgeResponseStatus}}}}}\", \"variables\": {\"z\": [\"57a6383c18d1b79bf8c1d8d36c026b26\", \"c023e5909e29450e87f91d723fa9d796\"], \"s\": \"${__timeFrom:date:iso}\", \"e\": \"${__timeTo:date:iso}\"}}",
+            "method": "POST"
+          }
+        }
+      ],
+      "title": "HTTP status by prod host – api/img on leaselab.io + leaselab.ai (range)",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "2xx": 2,
+              "3xx": 3,
+              "4xx": 4,
+              "5xx": 5,
+              "5xx %": 6,
+              "Host": 0,
+              "Total": 1
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "leaselab-cloudflare-newacct"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 21
+      },
+      "id": 24,
+      "targets": [
+        {
+          "columns": [
+            {
+              "selector": "host",
+              "text": "Host",
+              "type": "string"
+            },
+            {
+              "selector": "status",
+              "text": "Edge status",
+              "type": "number"
+            },
+            {
+              "selector": "origin",
+              "text": "Origin status",
+              "type": "number"
+            },
+            {
+              "selector": "path",
+              "text": "Path",
+              "type": "string"
+            },
+            {
+              "selector": "count",
+              "text": "Count",
+              "type": "number"
+            }
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare-newacct"
+          },
+          "format": "table",
+          "parser": "jq-backend",
+          "refId": "A",
+          "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare GraphQL error: \" + (.errors[0].message)) else ([.data.viewer.zones[].httpRequestsAdaptiveGroups[]] | map({host:.dimensions.clientRequestHTTPHost, status:.dimensions.edgeResponseStatus, origin:.dimensions.originResponseStatus, path:.dimensions.clientRequestPath, count:.count})) end",
+          "source": "url",
+          "type": "json",
+          "url": "https://api.cloudflare.com/client/v4/graphql",
+          "url_options": {
+            "body_content_type": "application/json",
+            "body_type": "raw",
+            "data": "{\"query\": \"query($z:[String!],$s:Time!,$e:Time!){viewer{zones(filter:{zoneTag_in:$z}){httpRequestsAdaptiveGroups(limit:200,orderBy:[count_DESC],filter:{requestSource:\\\"eyeball\\\",clientRequestHTTPHost_in:[\\\"api.leaselab.io\\\",\\\"img.leaselab.io\\\",\\\"api.leaselab.ai\\\",\\\"img.leaselab.ai\\\"],datetime_geq:$s,datetime_leq:$e,edgeResponseStatus_geq:500}){count dimensions{clientRequestHTTPHost edgeResponseStatus clientRequestPath originResponseStatus}}}}}\", \"variables\": {\"z\": [\"57a6383c18d1b79bf8c1d8d36c026b26\", \"c023e5909e29450e87f91d723fa9d796\"], \"s\": \"${__timeFrom:date:iso}\", \"e\": \"${__timeTo:date:iso}\"}}",
+            "method": "POST"
+          }
+        }
+      ],
+      "title": "Edge 5xx (client) – prod hosts api / img (range)",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "Count": 4,
+              "Edge status": 1,
+              "Host": 0,
+              "Origin status": 2,
+              "Path": 3
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      },
+      "id": 28,
+      "panels": [
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare-newacct"
+          },
+          "description": "",
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 0,
+            "y": 30
+          },
+          "id": 1,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "value"
+          },
+          "targets": [
+            {
+              "columns": [
+                {
+                  "selector": "v",
+                  "text": "Worker requests (range)",
+                  "type": "number"
+                }
+              ],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "leaselab-cloudflare-newacct"
+              },
+              "format": "table",
+              "parser": "jq-backend",
+              "refId": "A",
+              "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare GraphQL error: \" + (.errors[0].message)) else ([.data.viewer.accounts[0].workersInvocationsAdaptive[] | select(.dimensions.scriptName==\"leaselab-worker\")] as $r | [{v: ($r | (map(.sum.requests)|add // 0))}]) end",
+              "source": "url",
+              "type": "json",
+              "url": "https://api.cloudflare.com/client/v4/graphql",
+              "url_options": {
+                "body_content_type": "application/json",
+                "body_type": "raw",
+                "data": "{\"query\": \"query($a:String!,$s:Time!,$e:Time!){viewer{accounts(filter:{accountTag:$a}){workersInvocationsAdaptive(limit:100,filter:{scriptName_in:[\\\"leaselab-worker\\\",\\\"leaselab-workflows\\\"],datetime_geq:$s,datetime_leq:$e}){sum{requests errors} dimensions{scriptName status}}}}}\", \"variables\": {\"a\": \"cb1832646d5413d5df781c30f2a7ccc4\", \"s\": \"${__timeFrom:date:iso}\", \"e\": \"${__timeTo:date:iso}\"}}",
+                "method": "POST"
+              }
+            }
+          ],
+          "title": "Worker requests (range)",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare-newacct"
+          },
+          "description": "",
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 1
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 6,
+            "y": 30
+          },
+          "id": 2,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "value"
+          },
+          "targets": [
+            {
+              "columns": [
+                {
+                  "selector": "v",
+                  "text": "Worker errors (range)",
+                  "type": "number"
+                }
+              ],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "leaselab-cloudflare-newacct"
+              },
+              "format": "table",
+              "parser": "jq-backend",
+              "refId": "A",
+              "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare GraphQL error: \" + (.errors[0].message)) else ([.data.viewer.accounts[0].workersInvocationsAdaptive[] | select(.dimensions.scriptName==\"leaselab-worker\")] as $r | [{v: ($r | (map(.sum.errors)|add // 0))}]) end",
+              "source": "url",
+              "type": "json",
+              "url": "https://api.cloudflare.com/client/v4/graphql",
+              "url_options": {
+                "body_content_type": "application/json",
+                "body_type": "raw",
+                "data": "{\"query\": \"query($a:String!,$s:Time!,$e:Time!){viewer{accounts(filter:{accountTag:$a}){workersInvocationsAdaptive(limit:100,filter:{scriptName_in:[\\\"leaselab-worker\\\",\\\"leaselab-workflows\\\"],datetime_geq:$s,datetime_leq:$e}){sum{requests errors} dimensions{scriptName status}}}}}\", \"variables\": {\"a\": \"cb1832646d5413d5df781c30f2a7ccc4\", \"s\": \"${__timeFrom:date:iso}\", \"e\": \"${__timeTo:date:iso}\"}}",
+                "method": "POST"
+              }
+            }
+          ],
+          "title": "Worker errors (range)",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare-newacct"
+          },
+          "description": "Cloudflare Workers 'errors' = invocations that threw/exceeded limits (not app-returned HTTP 5xx; zone analytics not granted).",
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 1
+                  },
+                  {
+                    "color": "red",
+                    "value": 5
+                  }
+                ]
+              },
+              "unit": "percent"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 12,
+            "y": 30
+          },
+          "id": 3,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "value"
+          },
+          "targets": [
+            {
+              "columns": [
+                {
+                  "selector": "v",
+                  "text": "Worker error rate (range)",
+                  "type": "number"
+                }
+              ],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "leaselab-cloudflare-newacct"
+              },
+              "format": "table",
+              "parser": "jq-backend",
+              "refId": "A",
+              "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare GraphQL error: \" + (.errors[0].message)) else ([.data.viewer.accounts[0].workersInvocationsAdaptive[] | select(.dimensions.scriptName==\"leaselab-worker\")] as $r | [{v: ($r | (if (map(.sum.requests)|add // 0)>0 then (map(.sum.errors)|add // 0)/(map(.sum.requests)|add // 0)*100 else 0 end))}]) end",
+              "source": "url",
+              "type": "json",
+              "url": "https://api.cloudflare.com/client/v4/graphql",
+              "url_options": {
+                "body_content_type": "application/json",
+                "body_type": "raw",
+                "data": "{\"query\": \"query($a:String!,$s:Time!,$e:Time!){viewer{accounts(filter:{accountTag:$a}){workersInvocationsAdaptive(limit:100,filter:{scriptName_in:[\\\"leaselab-worker\\\",\\\"leaselab-workflows\\\"],datetime_geq:$s,datetime_leq:$e}){sum{requests errors} dimensions{scriptName status}}}}}\", \"variables\": {\"a\": \"cb1832646d5413d5df781c30f2a7ccc4\", \"s\": \"${__timeFrom:date:iso}\", \"e\": \"${__timeTo:date:iso}\"}}",
+                "method": "POST"
+              }
+            }
+          ],
+          "title": "Worker error rate (range)",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare-newacct"
+          },
+          "description": "",
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 18,
+            "y": 30
+          },
+          "id": 4,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "value"
+          },
+          "targets": [
+            {
+              "columns": [
+                {
+                  "selector": "v",
+                  "text": "Workflows requests (range)",
+                  "type": "number"
+                }
+              ],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "leaselab-cloudflare-newacct"
+              },
+              "format": "table",
+              "parser": "jq-backend",
+              "refId": "A",
+              "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare GraphQL error: \" + (.errors[0].message)) else ([.data.viewer.accounts[0].workersInvocationsAdaptive[] | select(.dimensions.scriptName==\"leaselab-workflows\")] as $r | [{v: ($r | (map(.sum.requests)|add // 0))}]) end",
+              "source": "url",
+              "type": "json",
+              "url": "https://api.cloudflare.com/client/v4/graphql",
+              "url_options": {
+                "body_content_type": "application/json",
+                "body_type": "raw",
+                "data": "{\"query\": \"query($a:String!,$s:Time!,$e:Time!){viewer{accounts(filter:{accountTag:$a}){workersInvocationsAdaptive(limit:100,filter:{scriptName_in:[\\\"leaselab-worker\\\",\\\"leaselab-workflows\\\"],datetime_geq:$s,datetime_leq:$e}){sum{requests errors} dimensions{scriptName status}}}}}\", \"variables\": {\"a\": \"cb1832646d5413d5df781c30f2a7ccc4\", \"s\": \"${__timeFrom:date:iso}\", \"e\": \"${__timeTo:date:iso}\"}}",
+                "method": "POST"
+              }
+            }
+          ],
+          "title": "Workflows requests (range)",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare-newacct"
+          },
+          "description": "",
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 1
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 0,
+            "y": 34
+          },
+          "id": 5,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "value"
+          },
+          "targets": [
+            {
+              "columns": [
+                {
+                  "selector": "v",
+                  "text": "Workflows errors (range)",
+                  "type": "number"
+                }
+              ],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "leaselab-cloudflare-newacct"
+              },
+              "format": "table",
+              "parser": "jq-backend",
+              "refId": "A",
+              "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare GraphQL error: \" + (.errors[0].message)) else ([.data.viewer.accounts[0].workersInvocationsAdaptive[] | select(.dimensions.scriptName==\"leaselab-workflows\")] as $r | [{v: ($r | (map(.sum.errors)|add // 0))}]) end",
+              "source": "url",
+              "type": "json",
+              "url": "https://api.cloudflare.com/client/v4/graphql",
+              "url_options": {
+                "body_content_type": "application/json",
+                "body_type": "raw",
+                "data": "{\"query\": \"query($a:String!,$s:Time!,$e:Time!){viewer{accounts(filter:{accountTag:$a}){workersInvocationsAdaptive(limit:100,filter:{scriptName_in:[\\\"leaselab-worker\\\",\\\"leaselab-workflows\\\"],datetime_geq:$s,datetime_leq:$e}){sum{requests errors} dimensions{scriptName status}}}}}\", \"variables\": {\"a\": \"cb1832646d5413d5df781c30f2a7ccc4\", \"s\": \"${__timeFrom:date:iso}\", \"e\": \"${__timeTo:date:iso}\"}}",
+                "method": "POST"
+              }
+            }
+          ],
+          "title": "Workflows errors (range)",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare-newacct"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "lineWidth": 1,
+                "spanNulls": false
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 38
+          },
+          "id": 8,
+          "targets": [
+            {
+              "columns": [
+                {
+                  "selector": "time",
+                  "text": "time",
+                  "type": "timestamp"
+                },
+                {
+                  "selector": "requests",
+                  "text": "worker requests",
+                  "type": "number"
+                }
+              ],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "leaselab-cloudflare-newacct"
+              },
+              "format": "table",
+              "parser": "jq-backend",
+              "refId": "A",
+              "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare GraphQL error: \" + (.errors[0].message)) else ([.data.viewer.accounts[0].workersInvocationsAdaptive[] | {time:.dimensions.datetimeFiveMinutes, requests:.sum.requests, errors:.sum.errors, cpu_p50_ms:(.quantiles.cpuTimeP50/1000), cpu_p99_ms:(.quantiles.cpuTimeP99/1000)}]) end",
+              "source": "url",
+              "type": "json",
+              "url": "https://api.cloudflare.com/client/v4/graphql",
+              "url_options": {
+                "body_content_type": "application/json",
+                "body_type": "raw",
+                "data": "{\"query\": \"query($a:String!,$s:Time!,$e:Time!){viewer{accounts(filter:{accountTag:$a}){workersInvocationsAdaptive(limit:10000,orderBy:[datetimeFiveMinutes_ASC],filter:{scriptName:\\\"leaselab-worker\\\",datetime_geq:$s,datetime_leq:$e}){sum{requests errors subrequests} quantiles{cpuTimeP50 cpuTimeP99} dimensions{datetimeFiveMinutes}}}}}\", \"variables\": {\"a\": \"cb1832646d5413d5df781c30f2a7ccc4\", \"s\": \"${__timeFrom:date:iso}\", \"e\": \"${__timeTo:date:iso}\"}}",
+                "method": "POST"
+              }
+            },
+            {
+              "columns": [
+                {
+                  "selector": "time",
+                  "text": "time",
+                  "type": "timestamp"
+                },
+                {
+                  "selector": "requests",
+                  "text": "workflows requests",
+                  "type": "number"
+                }
+              ],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "leaselab-cloudflare-newacct"
+              },
+              "format": "table",
+              "parser": "jq-backend",
+              "refId": "B",
+              "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare GraphQL error: \" + (.errors[0].message)) else ([.data.viewer.accounts[0].workersInvocationsAdaptive[] | {time:.dimensions.datetimeFiveMinutes, requests:.sum.requests, errors:.sum.errors, cpu_p50_ms:(.quantiles.cpuTimeP50/1000), cpu_p99_ms:(.quantiles.cpuTimeP99/1000)}]) end",
+              "source": "url",
+              "type": "json",
+              "url": "https://api.cloudflare.com/client/v4/graphql",
+              "url_options": {
+                "body_content_type": "application/json",
+                "body_type": "raw",
+                "data": "{\"query\": \"query($a:String!,$s:Time!,$e:Time!){viewer{accounts(filter:{accountTag:$a}){workersInvocationsAdaptive(limit:10000,orderBy:[datetimeFiveMinutes_ASC],filter:{scriptName:\\\"leaselab-workflows\\\",datetime_geq:$s,datetime_leq:$e}){sum{requests errors subrequests} quantiles{cpuTimeP50 cpuTimeP99} dimensions{datetimeFiveMinutes}}}}}\", \"variables\": {\"a\": \"cb1832646d5413d5df781c30f2a7ccc4\", \"s\": \"${__timeFrom:date:iso}\", \"e\": \"${__timeTo:date:iso}\"}}",
+                "method": "POST"
+              }
+            }
+          ],
+          "title": "Requests per 5m (prod)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare-newacct"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "lineWidth": 1,
+                "spanNulls": false
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 38
+          },
+          "id": 9,
+          "targets": [
+            {
+              "columns": [
+                {
+                  "selector": "time",
+                  "text": "time",
+                  "type": "timestamp"
+                },
+                {
+                  "selector": "errors",
+                  "text": "worker errors",
+                  "type": "number"
+                }
+              ],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "leaselab-cloudflare-newacct"
+              },
+              "format": "table",
+              "parser": "jq-backend",
+              "refId": "A",
+              "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare GraphQL error: \" + (.errors[0].message)) else ([.data.viewer.accounts[0].workersInvocationsAdaptive[] | {time:.dimensions.datetimeFiveMinutes, requests:.sum.requests, errors:.sum.errors, cpu_p50_ms:(.quantiles.cpuTimeP50/1000), cpu_p99_ms:(.quantiles.cpuTimeP99/1000)}]) end",
+              "source": "url",
+              "type": "json",
+              "url": "https://api.cloudflare.com/client/v4/graphql",
+              "url_options": {
+                "body_content_type": "application/json",
+                "body_type": "raw",
+                "data": "{\"query\": \"query($a:String!,$s:Time!,$e:Time!){viewer{accounts(filter:{accountTag:$a}){workersInvocationsAdaptive(limit:10000,orderBy:[datetimeFiveMinutes_ASC],filter:{scriptName:\\\"leaselab-worker\\\",datetime_geq:$s,datetime_leq:$e}){sum{requests errors subrequests} quantiles{cpuTimeP50 cpuTimeP99} dimensions{datetimeFiveMinutes}}}}}\", \"variables\": {\"a\": \"cb1832646d5413d5df781c30f2a7ccc4\", \"s\": \"${__timeFrom:date:iso}\", \"e\": \"${__timeTo:date:iso}\"}}",
+                "method": "POST"
+              }
+            },
+            {
+              "columns": [
+                {
+                  "selector": "time",
+                  "text": "time",
+                  "type": "timestamp"
+                },
+                {
+                  "selector": "errors",
+                  "text": "workflows errors",
+                  "type": "number"
+                }
+              ],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "leaselab-cloudflare-newacct"
+              },
+              "format": "table",
+              "parser": "jq-backend",
+              "refId": "B",
+              "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare GraphQL error: \" + (.errors[0].message)) else ([.data.viewer.accounts[0].workersInvocationsAdaptive[] | {time:.dimensions.datetimeFiveMinutes, requests:.sum.requests, errors:.sum.errors, cpu_p50_ms:(.quantiles.cpuTimeP50/1000), cpu_p99_ms:(.quantiles.cpuTimeP99/1000)}]) end",
+              "source": "url",
+              "type": "json",
+              "url": "https://api.cloudflare.com/client/v4/graphql",
+              "url_options": {
+                "body_content_type": "application/json",
+                "body_type": "raw",
+                "data": "{\"query\": \"query($a:String!,$s:Time!,$e:Time!){viewer{accounts(filter:{accountTag:$a}){workersInvocationsAdaptive(limit:10000,orderBy:[datetimeFiveMinutes_ASC],filter:{scriptName:\\\"leaselab-workflows\\\",datetime_geq:$s,datetime_leq:$e}){sum{requests errors subrequests} quantiles{cpuTimeP50 cpuTimeP99} dimensions{datetimeFiveMinutes}}}}}\", \"variables\": {\"a\": \"cb1832646d5413d5df781c30f2a7ccc4\", \"s\": \"${__timeFrom:date:iso}\", \"e\": \"${__timeTo:date:iso}\"}}",
+                "method": "POST"
+              }
+            }
+          ],
+          "title": "Errors / exceptions per 5m (prod)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare-newacct"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "lineWidth": 1,
+                "spanNulls": false
+              },
+              "unit": "ms"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 46
+          },
+          "id": 10,
+          "targets": [
+            {
+              "columns": [
+                {
+                  "selector": "time",
+                  "text": "time",
+                  "type": "timestamp"
+                },
+                {
+                  "selector": "cpu_p50_ms",
+                  "text": "worker cpu_p50_ms",
+                  "type": "number"
+                },
+                {
+                  "selector": "cpu_p99_ms",
+                  "text": "worker cpu_p99_ms",
+                  "type": "number"
+                }
+              ],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "leaselab-cloudflare-newacct"
+              },
+              "format": "table",
+              "parser": "jq-backend",
+              "refId": "A",
+              "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare GraphQL error: \" + (.errors[0].message)) else ([.data.viewer.accounts[0].workersInvocationsAdaptive[] | {time:.dimensions.datetimeFiveMinutes, requests:.sum.requests, errors:.sum.errors, cpu_p50_ms:(.quantiles.cpuTimeP50/1000), cpu_p99_ms:(.quantiles.cpuTimeP99/1000)}]) end",
+              "source": "url",
+              "type": "json",
+              "url": "https://api.cloudflare.com/client/v4/graphql",
+              "url_options": {
+                "body_content_type": "application/json",
+                "body_type": "raw",
+                "data": "{\"query\": \"query($a:String!,$s:Time!,$e:Time!){viewer{accounts(filter:{accountTag:$a}){workersInvocationsAdaptive(limit:10000,orderBy:[datetimeFiveMinutes_ASC],filter:{scriptName:\\\"leaselab-worker\\\",datetime_geq:$s,datetime_leq:$e}){sum{requests errors subrequests} quantiles{cpuTimeP50 cpuTimeP99} dimensions{datetimeFiveMinutes}}}}}\", \"variables\": {\"a\": \"cb1832646d5413d5df781c30f2a7ccc4\", \"s\": \"${__timeFrom:date:iso}\", \"e\": \"${__timeTo:date:iso}\"}}",
+                "method": "POST"
+              }
+            },
+            {
+              "columns": [
+                {
+                  "selector": "time",
+                  "text": "time",
+                  "type": "timestamp"
+                },
+                {
+                  "selector": "cpu_p50_ms",
+                  "text": "workflows cpu_p50_ms",
+                  "type": "number"
+                },
+                {
+                  "selector": "cpu_p99_ms",
+                  "text": "workflows cpu_p99_ms",
+                  "type": "number"
+                }
+              ],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "leaselab-cloudflare-newacct"
+              },
+              "format": "table",
+              "parser": "jq-backend",
+              "refId": "B",
+              "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare GraphQL error: \" + (.errors[0].message)) else ([.data.viewer.accounts[0].workersInvocationsAdaptive[] | {time:.dimensions.datetimeFiveMinutes, requests:.sum.requests, errors:.sum.errors, cpu_p50_ms:(.quantiles.cpuTimeP50/1000), cpu_p99_ms:(.quantiles.cpuTimeP99/1000)}]) end",
+              "source": "url",
+              "type": "json",
+              "url": "https://api.cloudflare.com/client/v4/graphql",
+              "url_options": {
+                "body_content_type": "application/json",
+                "body_type": "raw",
+                "data": "{\"query\": \"query($a:String!,$s:Time!,$e:Time!){viewer{accounts(filter:{accountTag:$a}){workersInvocationsAdaptive(limit:10000,orderBy:[datetimeFiveMinutes_ASC],filter:{scriptName:\\\"leaselab-workflows\\\",datetime_geq:$s,datetime_leq:$e}){sum{requests errors subrequests} quantiles{cpuTimeP50 cpuTimeP99} dimensions{datetimeFiveMinutes}}}}}\", \"variables\": {\"a\": \"cb1832646d5413d5df781c30f2a7ccc4\", \"s\": \"${__timeFrom:date:iso}\", \"e\": \"${__timeTo:date:iso}\"}}",
+                "method": "POST"
+              }
+            }
+          ],
+          "title": "CPU time p50 / p99 (ms)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare-newacct"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 46
+          },
+          "id": 11,
+          "targets": [
+            {
+              "columns": [
+                {
+                  "selector": "worker",
+                  "text": "Worker",
+                  "type": "string"
+                },
+                {
+                  "selector": "status",
+                  "text": "Status",
+                  "type": "string"
+                },
+                {
+                  "selector": "requests",
+                  "text": "Requests",
+                  "type": "number"
+                },
+                {
+                  "selector": "errors",
+                  "text": "Errors",
+                  "type": "number"
+                }
+              ],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "leaselab-cloudflare-newacct"
+              },
+              "format": "table",
+              "parser": "jq-backend",
+              "refId": "A",
+              "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare GraphQL error: \" + (.errors[0].message)) else ([.data.viewer.accounts[0].workersInvocationsAdaptive[] | {worker:.dimensions.scriptName, status:.dimensions.status, requests:.sum.requests, errors:.sum.errors}]) end",
+              "source": "url",
+              "type": "json",
+              "url": "https://api.cloudflare.com/client/v4/graphql",
+              "url_options": {
+                "body_content_type": "application/json",
+                "body_type": "raw",
+                "data": "{\"query\": \"query($a:String!,$s:Time!,$e:Time!){viewer{accounts(filter:{accountTag:$a}){workersInvocationsAdaptive(limit:100,filter:{scriptName_in:[\\\"leaselab-worker\\\",\\\"leaselab-workflows\\\"],datetime_geq:$s,datetime_leq:$e}){sum{requests errors} dimensions{scriptName status}}}}}\", \"variables\": {\"a\": \"cb1832646d5413d5df781c30f2a7ccc4\", \"s\": \"${__timeFrom:date:iso}\", \"e\": \"${__timeTo:date:iso}\"}}",
+                "method": "POST"
+              }
+            }
+          ],
+          "title": "Invocations by status (range)",
+          "type": "table"
+        }
+      ],
+      "title": "Workers 与 Workflows",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 30
+      },
+      "id": 29,
+      "panels": [
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare-newacct"
+          },
+          "description": "",
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 1
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 0,
+            "y": 31
+          },
+          "id": 6,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "value"
+          },
+          "targets": [
+            {
+              "columns": [
+                {
+                  "selector": "v",
+                  "text": "D1 query errors (range)",
+                  "type": "number"
+                }
+              ],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "leaselab-cloudflare-newacct"
+              },
+              "format": "table",
+              "parser": "jq-backend",
+              "refId": "A",
+              "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare GraphQL error: \" + (.errors[0].message)) else ([{v: ([.data.viewer.accounts[0].d1QueriesAdaptiveGroups[] | select(.dimensions.error != \"\") | .count] | add // 0)}]) end",
+              "source": "url",
+              "type": "json",
+              "url": "https://api.cloudflare.com/client/v4/graphql",
+              "url_options": {
+                "body_content_type": "application/json",
+                "body_type": "raw",
+                "data": "{\"query\": \"query($a:String!,$s:Time!,$e:Time!){viewer{accounts(filter:{accountTag:$a}){d1QueriesAdaptiveGroups(limit:100,filter:{databaseId:\\\"678d5db8-42cf-491e-b40a-af7caa8aea0d\\\",datetime_geq:$s,datetime_leq:$e}){count dimensions{error}}}}}\", \"variables\": {\"a\": \"cb1832646d5413d5df781c30f2a7ccc4\", \"s\": \"${__timeFrom:date:iso}\", \"e\": \"${__timeTo:date:iso}\"}}",
+                "method": "POST"
+              }
+            }
+          ],
+          "title": "D1 query errors (range)",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare-newacct"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "lineWidth": 1,
+                "spanNulls": false
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 35
+          },
+          "id": 12,
+          "targets": [
+            {
+              "columns": [
+                {
+                  "selector": "time",
+                  "text": "time",
+                  "type": "timestamp"
+                },
+                {
+                  "selector": "readQueries",
+                  "text": "read queries",
+                  "type": "number"
+                },
+                {
+                  "selector": "writeQueries",
+                  "text": "write queries",
+                  "type": "number"
+                }
+              ],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "leaselab-cloudflare-newacct"
+              },
+              "format": "table",
+              "parser": "jq-backend",
+              "refId": "A",
+              "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare GraphQL error: \" + (.errors[0].message)) else ([.data.viewer.accounts[0].d1AnalyticsAdaptiveGroups[] | {time:.dimensions.datetimeFiveMinutes, readQueries:.sum.readQueries, writeQueries:.sum.writeQueries, rowsRead:.sum.rowsRead, rowsWritten:.sum.rowsWritten, p50:.quantiles.queryBatchTimeMsP50, p99:.quantiles.queryBatchTimeMsP99}]) end",
+              "source": "url",
+              "type": "json",
+              "url": "https://api.cloudflare.com/client/v4/graphql",
+              "url_options": {
+                "body_content_type": "application/json",
+                "body_type": "raw",
+                "data": "{\"query\": \"query($a:String!,$s:Time!,$e:Time!){viewer{accounts(filter:{accountTag:$a}){d1AnalyticsAdaptiveGroups(limit:10000,orderBy:[datetimeFiveMinutes_ASC],filter:{databaseId:\\\"678d5db8-42cf-491e-b40a-af7caa8aea0d\\\",datetime_geq:$s,datetime_leq:$e}){sum{readQueries writeQueries rowsRead rowsWritten} quantiles{queryBatchTimeMsP50 queryBatchTimeMsP99} dimensions{datetimeFiveMinutes}}}}}\", \"variables\": {\"a\": \"cb1832646d5413d5df781c30f2a7ccc4\", \"s\": \"${__timeFrom:date:iso}\", \"e\": \"${__timeTo:date:iso}\"}}",
+                "method": "POST"
+              }
+            }
+          ],
+          "title": "D1 queries per 5m (leaselab-db prod)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare-newacct"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "lineWidth": 1,
+                "spanNulls": false
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 35
+          },
+          "id": 13,
+          "targets": [
+            {
+              "columns": [
+                {
+                  "selector": "time",
+                  "text": "time",
+                  "type": "timestamp"
+                },
+                {
+                  "selector": "rowsRead",
+                  "text": "rows read",
+                  "type": "number"
+                },
+                {
+                  "selector": "rowsWritten",
+                  "text": "rows written",
+                  "type": "number"
+                }
+              ],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "leaselab-cloudflare-newacct"
+              },
+              "format": "table",
+              "parser": "jq-backend",
+              "refId": "A",
+              "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare GraphQL error: \" + (.errors[0].message)) else ([.data.viewer.accounts[0].d1AnalyticsAdaptiveGroups[] | {time:.dimensions.datetimeFiveMinutes, readQueries:.sum.readQueries, writeQueries:.sum.writeQueries, rowsRead:.sum.rowsRead, rowsWritten:.sum.rowsWritten, p50:.quantiles.queryBatchTimeMsP50, p99:.quantiles.queryBatchTimeMsP99}]) end",
+              "source": "url",
+              "type": "json",
+              "url": "https://api.cloudflare.com/client/v4/graphql",
+              "url_options": {
+                "body_content_type": "application/json",
+                "body_type": "raw",
+                "data": "{\"query\": \"query($a:String!,$s:Time!,$e:Time!){viewer{accounts(filter:{accountTag:$a}){d1AnalyticsAdaptiveGroups(limit:10000,orderBy:[datetimeFiveMinutes_ASC],filter:{databaseId:\\\"678d5db8-42cf-491e-b40a-af7caa8aea0d\\\",datetime_geq:$s,datetime_leq:$e}){sum{readQueries writeQueries rowsRead rowsWritten} quantiles{queryBatchTimeMsP50 queryBatchTimeMsP99} dimensions{datetimeFiveMinutes}}}}}\", \"variables\": {\"a\": \"cb1832646d5413d5df781c30f2a7ccc4\", \"s\": \"${__timeFrom:date:iso}\", \"e\": \"${__timeTo:date:iso}\"}}",
+                "method": "POST"
+              }
+            }
+          ],
+          "title": "D1 rows read / written per 5m",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare-newacct"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "lineWidth": 1,
+                "spanNulls": false
+              },
+              "unit": "ms"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 43
+          },
+          "id": 14,
+          "targets": [
+            {
+              "columns": [
+                {
+                  "selector": "time",
+                  "text": "time",
+                  "type": "timestamp"
+                },
+                {
+                  "selector": "p50",
+                  "text": "p50",
+                  "type": "number"
+                },
+                {
+                  "selector": "p99",
+                  "text": "p99",
+                  "type": "number"
+                }
+              ],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "leaselab-cloudflare-newacct"
+              },
+              "format": "table",
+              "parser": "jq-backend",
+              "refId": "A",
+              "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare GraphQL error: \" + (.errors[0].message)) else ([.data.viewer.accounts[0].d1AnalyticsAdaptiveGroups[] | {time:.dimensions.datetimeFiveMinutes, readQueries:.sum.readQueries, writeQueries:.sum.writeQueries, rowsRead:.sum.rowsRead, rowsWritten:.sum.rowsWritten, p50:.quantiles.queryBatchTimeMsP50, p99:.quantiles.queryBatchTimeMsP99}]) end",
+              "source": "url",
+              "type": "json",
+              "url": "https://api.cloudflare.com/client/v4/graphql",
+              "url_options": {
+                "body_content_type": "application/json",
+                "body_type": "raw",
+                "data": "{\"query\": \"query($a:String!,$s:Time!,$e:Time!){viewer{accounts(filter:{accountTag:$a}){d1AnalyticsAdaptiveGroups(limit:10000,orderBy:[datetimeFiveMinutes_ASC],filter:{databaseId:\\\"678d5db8-42cf-491e-b40a-af7caa8aea0d\\\",datetime_geq:$s,datetime_leq:$e}){sum{readQueries writeQueries rowsRead rowsWritten} quantiles{queryBatchTimeMsP50 queryBatchTimeMsP99} dimensions{datetimeFiveMinutes}}}}}\", \"variables\": {\"a\": \"cb1832646d5413d5df781c30f2a7ccc4\", \"s\": \"${__timeFrom:date:iso}\", \"e\": \"${__timeTo:date:iso}\"}}",
+                "method": "POST"
+              }
+            }
+          ],
+          "title": "D1 query batch time p50 / p99 (ms)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "leaselab-cloudflare-newacct"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 43
+          },
+          "id": 15,
+          "targets": [
+            {
+              "columns": [
+                {
+                  "selector": "error",
+                  "text": "Error",
+                  "type": "string"
+                },
+                {
+                  "selector": "count",
+                  "text": "Count",
+                  "type": "number"
+                }
+              ],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "leaselab-cloudflare-newacct"
+              },
+              "format": "table",
+              "parser": "jq-backend",
+              "refId": "A",
+              "root_selector": "if ((.errors // []) | length) > 0 then error(\"Cloudflare GraphQL error: \" + (.errors[0].message)) else ([.data.viewer.accounts[0].d1QueriesAdaptiveGroups[] | {error:.dimensions.error, count:.count}]) end",
+              "source": "url",
+              "type": "json",
+              "url": "https://api.cloudflare.com/client/v4/graphql",
+              "url_options": {
+                "body_content_type": "application/json",
+                "body_type": "raw",
+                "data": "{\"query\": \"query($a:String!,$s:Time!,$e:Time!){viewer{accounts(filter:{accountTag:$a}){d1QueriesAdaptiveGroups(limit:100,filter:{databaseId:\\\"678d5db8-42cf-491e-b40a-af7caa8aea0d\\\",error_neq:\\\"\\\",datetime_geq:$s,datetime_leq:$e}){count dimensions{error}}}}}\", \"variables\": {\"a\": \"cb1832646d5413d5df781c30f2a7ccc4\", \"s\": \"${__timeFrom:date:iso}\", \"e\": \"${__timeTo:date:iso}\"}}",
+                "method": "POST"
+              }
+            }
+          ],
+          "title": "D1 errors by message (range)",
+          "type": "table"
+        }
+      ],
+      "title": "D1 数据库",
+      "type": "row"
+    }
+  ],
+  "refresh": "5m",
+  "schemaVersion": 39,
+  "tags": [
+    "leaselab",
+    "prod",
+    "sre"
+  ],
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timezone": "America/Toronto",
+  "title": "LeaseLab Prod",
+  "uid": "leaselab-prod"
+}

@@ -1,0 +1,15 @@
+# LeaseLab dashboards on local Grafana (.228), exported from Grafana Cloud with
+# uids unchanged. Dashboards only: LeaseLab alerting stays in Grafana Cloud.
+apiVersion: 1
+
+providers:
+  - name: leaselab
+    orgId: 1
+    folder: LeaseLab
+    folderUid: leaselab
+    type: file
+    disableDeletion: false
+    allowUiUpdates: true
+    updateIntervalSeconds: 60
+    options:
+      path: /var/lib/grafana/dashboards/leaselab
