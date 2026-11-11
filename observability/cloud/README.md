@@ -39,7 +39,9 @@ Grafana stays the pager for in-house services. Each failure should page once.
   - A first-position policy route `oob=true` sends those alerts to `homelab-oob-telegram`. Until that
     contact point exists, it falls back to Hermes Critical.
   - Dashboard `homelab-external-cloud` reads only `grafanacloud-prom`.
-- Alloy LXC 918 `alloy` (192.168.253.206) is installed but not started yet; it waits on the token.
+- Alloy LXC 918 `alloy` (192.168.253.206) runs with token `alloy-lxc-918` (policy `homelab-alloy-write`).
+  The token lives in 1Password as "Grafana Cloud API key - Alloy" and is piped into
+  `/etc/default/alloy` as `GC_PROM_TOKEN` with `op read`. Cloud receives 133 series; `up{job="prometheus"}` is 1.
 
 Finding: from the internet, `hermes-alerts.yangjeep.net` times out after TLS, and
 `immich.yangjeep.net` returns 530. Local blackbox probes stay green because they use LAN
