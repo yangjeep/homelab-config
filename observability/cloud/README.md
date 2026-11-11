@@ -36,14 +36,14 @@ Grafana stays the pager for in-house services. Each failure should page once.
 - [`grafana-cloud.js`](grafana-cloud.js) (paste into the console on the cloud origin; it is idempotent):
   - Rules `hl-cloud-federate-deadman` and `hl-cloud-home-unreachable` in folder `homelab-cloud`, all
     labelled `oob=true`.
-  - A first-position policy route `oob=true` sends those alerts to `homelab-oob-telegram`. Until that
-    contact point exists, it falls back to Hermes Critical.
+  - A first-position policy route `oob=true` sends those alerts to `homelab-oob-telegram`
+    (Telegram bot `@yangjeep_uptime_kuma_bot`, created 2026-11-11; the user entered the token in the UI).
   - Dashboard `homelab-external-cloud` reads only `grafanacloud-prom`.
 - Alloy LXC 918 `alloy` (192.168.253.206) runs with token `alloy-lxc-918` (policy `homelab-alloy-write`).
   The token lives in 1Password as "Grafana Cloud API key - Alloy" and is piped into
   `/etc/default/alloy` as `GC_PROM_TOKEN` with `op read`. Cloud receives 133 series; `up{job="prometheus"}` is 1.
 
-Finding: from the internet, `hermes-alerts.yangjeep.net` times out after TLS, and
+Finding (deferred: Hermes has its own patrol; its Synthetics check is disabled, not deleted): from the internet, `hermes-alerts.yangjeep.net` times out after TLS, and
 `immich.yangjeep.net` returns 530. Local blackbox probes stay green because they use LAN
 addresses. Cloud alerts routed to Hermes may not be delivered until the tunnel ingress is fixed.
 
@@ -51,12 +51,22 @@ Tests: `node --test observability/cloud/grafana-cloud.test.js`
 
 ## LeaseLab on local Grafana
 
-The five LeaseLab boards (`leaselab-cloudflare-workers`, `leaselab-production`, `leaselab-preview`,
-`leaselab-prod`, `leaselab-seo`) use two datasources only: `leaselab-cloudflare-newacct`
-(Infinity, bearer token, `api.cloudflare.com`) and `leaselab-gsc` (Infinity, OAuth2 JWT service
-account, Search Console). Recreate both locally with the **same uids** so dashboard JSON imports
-unchanged. Secrets are entered by the user in the local UI. Cloud keeps the LeaseLab alerts; local
-is dashboards only.
+Applied 2026-11-11 from [`../leaselab-local/`](../leaselab-local/). Four boards are exported from cloud with
+uids unchanged (`leaselab-cloudflare-workers`, `leaselab-production`, `leaselab-preview`,
+`leaselab-prod`) and file-provisioned into folder `LeaseLab` on `.228`. The Infinity plugin is
+installed with `grafana cli`. The single datasource `leaselab-cloudflare-newacct` reads its bearer
+token from `/etc/grafana/secrets/leaselab-cf-token`. That token is the leaselab account token
+`grafana-local-leaselab-analytics-ro` (Account Analytics Read plus zone Analytics Read), piped in
+from 1Password. Search Console (`leaselab-gsc`, `leaselab-seo`) stays cloud-only. Cloud keeps the
+LeaseLab alerts; local is dashboards only.
+
+Deploy: copy `provisioning/*/leaselab.yml` into `/etc/grafana/provisioning/` and `dashboards/*.json`
+into `/var/lib/grafana/dashboards/leaselab/` on LXC 910, then restart `grafana-server`.
+
+Hermes reads cloud Grafana through `endpoints.grafana_cloud` in `/etc/homelab-mcp/settings.json`.
+It uses the token of service account `homelab-hermes-cloud-reader` (Viewer), which lives in
+1Password as "Grafana Cloud hermes-cloud-reader". It was replaced on 2026-11-11 because the old
+token returned 401.
 
 ## Alloy LXC
 
