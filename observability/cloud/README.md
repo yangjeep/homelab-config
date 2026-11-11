@@ -55,9 +55,10 @@ Applied 2026-11-11 from [`../leaselab-local/`](../leaselab-local/). Four boards 
 uids unchanged (`leaselab-cloudflare-workers`, `leaselab-production`, `leaselab-preview`,
 `leaselab-prod`) and file-provisioned into folder `LeaseLab` on `.228`. The Infinity plugin is
 installed with `grafana cli`. The single datasource `leaselab-cloudflare-newacct` reads its bearer
-token from `/etc/grafana/secrets/leaselab-cf-token`. That token is the leaselab account token
-`grafana-local-leaselab-analytics-ro` (Account Analytics Read plus zone Analytics Read), piped in
-from 1Password. Search Console (`leaselab-gsc`, `leaselab-seo`) stays cloud-only. Cloud keeps the
+token from `/etc/grafana/secrets/leaselab-cf-token`. That token is the same leaselab account token
+cloud uses, `grafana-leaselab-analytics-ro` (Analytics Read plus Account Analytics Read). It lives in
+1Password as "Cloudflare - grafana-leaselab-analytics-ro", is piped in with `op read`, and was
+verified on 2026-11-11 (datasource health OK, Production panel returns data). Search Console (`leaselab-gsc`, `leaselab-seo`) stays cloud-only. Cloud keeps the
 LeaseLab alerts; local is dashboards only.
 
 Deploy: copy `provisioning/*/leaselab.yml` into `/etc/grafana/provisioning/` and `dashboards/*.json`

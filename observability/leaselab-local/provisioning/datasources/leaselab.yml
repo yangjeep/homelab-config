@@ -2,7 +2,7 @@
 # exported dashboards import unchanged. Search Console (`leaselab-gsc`, board `leaselab-seo`)
 # is cloud-only by choice. Secrets are read from files on the Grafana
 # LXC (root:grafana 0640), never stored here:
-#   /etc/grafana/secrets/leaselab-cf-token      Cloudflare API token, Analytics read, account cb18…
+#   /etc/grafana/secrets/leaselab-cf-token      Cloudflare account token grafana-leaselab-analytics-ro (cb18…), shared with cloud
 apiVersion: 1
 
 datasources:
