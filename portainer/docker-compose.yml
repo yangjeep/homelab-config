@@ -1,5 +1,3 @@
-version: '3.1'
-
 services:
   portainer:
     image: portainer/portainer-ce:latest
@@ -12,22 +10,18 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /home/yangjeep/data/portainer:/data
     ports:
-      - 9000:9000
-      - 8000:8000
+      # HTTPS UI only. Plain-HTTP 9000 and the Edge tunnel port 8000 are not
+      # published: nothing uses them, and 9000 would expose the login in clear.
       - 9443:9443
     command: -H tcp://agent:9001 --tlsskipverify
 
   agent:
-    image: portainer/agent
+    image: portainer/agent:latest
     container_name: portainer-agent
     restart: unless-stopped
+    # No published ports: Portainer reaches the agent as agent:9001 on the
+    # stack's own network. Publishing 9001 would expose a Docker-socket API
+    # to the whole LAN.
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /var/lib/docker/volumes:/var/lib/docker/volumes
-    ports:
-      - 9001:9001
-
-volumes:
-  portainer_data:  # Optional: now unused unless you want to remove it
-
-
