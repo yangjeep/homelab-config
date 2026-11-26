@@ -90,25 +90,16 @@
         icon: mdi-home-edit
         href: https://YOUR-LEASELAB-DEV
         description: LeaseLab development
-        proxmoxNode: pve-ec200a
-        proxmoxVMID: 111
-        proxmoxType: lxc
 
     - SmartSewer Dev:
         icon: mdi-pipe
         href: https://YOUR-SMARTSEWER-DEV
         description: SmartSewer development
-        proxmoxNode: pve-ec200a
-        proxmoxVMID: 112
-        proxmoxType: lxc
 
     - Gitea:
         icon: gitea.png
         href: http://192.168.253.100:30008/
         description: Git hosting
-        proxmoxNode: pve-ec200a
-        proxmoxVMID: 210
-        proxmoxType: lxc
         widget:
           type: gitea
           url: http://192.168.253.100:30008
@@ -118,9 +109,6 @@
         icon: gitea.png
         href: http://192.168.253.100:34321/
         description: Git syncing from Github to Gitea
-        proxmoxNode: pve-ec200a
-        proxmoxVMID: 211
-        proxmoxType: lxc
 
 - Media Automation:
 
@@ -242,12 +230,9 @@
 
     - Wallos:
         icon: wallos.png
-        href: https://192.168.253.219
+        href: http://192.168.253.100:8282
         description: Subscriptions
-        proxmoxNode: pve-ec200a
-        proxmoxVMID: 401
-        proxmoxType: lxc
         widget:
           type: wallos
-          url: http://192.168.253.219
+          url: http://192.168.253.100:8282
           key: "{{HOMEPAGE_VAR_WALLOS_API_KEY}}"
