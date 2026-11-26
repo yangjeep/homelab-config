@@ -1,0 +1,16 @@
+services:
+  pdc-agent:
+    # Grafana Cloud Private Data source Connect agent. It opens an outbound SSH
+    # tunnel to Grafana Cloud so hosted Grafana can query the lab Prometheus.
+    image: grafana/pdc-agent:latest
+    container_name: grafana-pdc-homelab
+    restart: unless-stopped
+    command:
+      - -token
+      - ${PDC_TOKEN}
+      - -cluster
+      - ${PDC_CLUSTER}
+      - -gcloud-hosted-grafana-id
+      - ${PDC_HOSTED_GRAFANA_ID}
+      # Only allow the tunnel to reach the lab Prometheus.
+      - -ssh-flag=-o PermitRemoteOpen=${PDC_PERMIT_REMOTE_OPEN}
